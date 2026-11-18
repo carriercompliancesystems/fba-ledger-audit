@@ -1,0 +1,55 @@
+# FBA Ledger Audit | Phase 0 review
+
+November 18, 2026
+
+**Recommendation for approval.** Keep the $29 one-time unlock. Give sellers one free, private audit that reconciles inventory losses with found units and reimbursements. Sell a dated evidence packet and case drafts once the seller can see how many units need investigation. Focus organic landing pages on specific questions sellers can answer with their own figures.
+
+## Repository at inspection
+
+GitHub reports that the connected account has push and admin access. The inspected `main` commit is `c742c45da7582b03d68198b97e1b255b52b94cf0`. Its Cloudflare Pages check succeeded. This review covers the source code. The live Stripe dashboard, success redirect configuration, paid checkout and production traffic were outside this inspection. [Source tree](https://github.com/carriercompliancesystems/fba-ledger-audit/tree/c742c45da7582b03d68198b97e1b255b52b94cf0) · [Cloudflare Pages check](https://github.com/carriercompliancesystems/fba-ledger-audit/runs/134948482015)
+
+| Current paths | What exists | Proposed work |
+| --- | --- | --- |
+| `index.html` | One page contains the upload form, inline styles, parser, demo, paywall, two exports and the live Payment Link supplied in the brief. | Extract `assets/styles.css`, `assets/layout.js` and `assets/auditor.js`. Use plain HTML, CSS and vanilla JavaScript with a root deployment and zero build steps. Put the checkout configuration at the top of `auditor.js`. |
+| `calculators/` | Five standalone HTML pages cover the 60-day deadline, lost inventory, dimensional weight, aged inventory and inbound shortages. Each embeds its own CSS and JavaScript. | Keep all five addresses and bring the collection to 14 distinct tools. Give each real inputs, a visual breakdown, a visible FAQ, matching JSON-LD, its own metadata and a canonical URL. |
+| `functions/api/verify.js` and `google9ebc526afdbadcaa.html` | The function checks Stripe Checkout payment status. The HTML file is the Google ownership token. | Preserve both files byte-for-byte. The baseline Git blob IDs are `311b97e1d04d5d8e54a6403b78fd667824765e56` and `2a747d9887d42dfa8b36918f740af7f719ef8b6c`, respectively. |
+| `robots.txt`, `sitemap.xml` and `llms.txt` | The crawler file allows `*`. The sitemap lists all six content pages. `llms.txt` links to two. | Retain all three filenames, name the requested crawlers, list all canonical content pages and audit every internal link. |
+
+That accounts for all 11 tracked files. The six content pages have titles and descriptions. All six need canonical links, structured data and FAQs. Crawlable links in the HTML will connect calculators to related questions and to the auditor. The shared navigation will also carry the privacy statement and Amazon non-affiliation disclosure.
+
+## Findings that affect sellers
+
+- **A date error can turn an expired claim into a sale.** The auditor assigns a missing or unreadable date an age of 15 days. It also displays the first qualifying row’s date for an entire SKU. Preserve dates per event, reject ambiguous dates with a row-specific message and count days 46–60 inclusively for urgency. [Date handling](https://github.com/carriercompliancesystems/fba-ledger-audit/blob/c742c45da7582b03d68198b97e1b255b52b94cf0/index.html#L172) · [SKU grouping](https://github.com/carriercompliancesystems/fba-ledger-audit/blob/c742c45da7582b03d68198b97e1b255b52b94cf0/index.html#L224)
+- **Checkout can discard the work a buyer just paid to export.** Findings live only in page memory and checkout navigates away. Save the minimum derived findings and entered costs in the tab’s session storage for the checkout round trip, restore them on return and provide a clear-data action. Verify `?session_id=` through `/api/verify`, preserve the existing `fba_audit_unlocked` key, and refresh downloads immediately after payment confirmation. [Checkout flow](https://github.com/carriercompliancesystems/fba-ledger-audit/blob/c742c45da7582b03d68198b97e1b255b52b94cf0/index.html#L125) · [Checkout navigation](https://github.com/carriercompliancesystems/fba-ledger-audit/blob/c742c45da7582b03d68198b97e1b255b52b94cf0/index.html#L319)
+- **The deadline checker gives conflicting answers.** The customer-return option says 60–120 days and calculates only 60. The same checker treats nine months as 270 days. Give refund and inbound guidance separate date calculations using the supplied day 46–120 window and nine calendar months, respectively. Ask sellers to confirm current eligibility and menu labels in Seller Central. [Deadline choices](https://github.com/carriercompliancesystems/fba-ledger-audit/blob/c742c45da7582b03d68198b97e1b255b52b94cf0/calculators/fba-60-day-deadline-checker.html#L24)
+- **Some displayed dollar amounts lack a source.** The auditor preloads $14.50 as every SKU’s unit cost. The aged-inventory and dimensional-weight pages embed rates, tiers or divisors outside the supplied inputs. Require sellers’ own sourced manufacturing costs for real audit values and their applicable rates or divisors for fee comparisons. Clearly identify demonstration values. [Cost default](https://github.com/carriercompliancesystems/fba-ledger-audit/blob/c742c45da7582b03d68198b97e1b255b52b94cf0/index.html#L64) · [Aged inventory](https://github.com/carriercompliancesystems/fba-ledger-audit/blob/c742c45da7582b03d68198b97e1b255b52b94cf0/calculators/fba-aged-inventory-surcharge-calculator.html) · [Dimensional weight](https://github.com/carriercompliancesystems/fba-ledger-audit/blob/c742c45da7582b03d68198b97e1b255b52b94cf0/calculators/fba-dim-weight-fee-overcharge-calculator.html)
+
+## Scope for implementation
+
+**Free audit.** One store per audit. Put local-only CSV processing, zero Seller Central API keys and the flat price above the fold. Read multiple dropped CSVs locally with `FileReader`. Detect Summary Ledger, Detailed Ledger and Reimbursements by their supplied headers. A free preview shows gross discrepancies, found units, reimbursed units, open units, missing costs, expired units and the dated amount approaching its deadline. Only a seller-entered cost values a real finding. The supplied tumbler row yields 9 lost + 4 damaged − 1 found = 12 units before reimbursements. Three matching reimbursed units would leave nine. The optional reimbursement file’s absence must be visible in both the preview and exports.
+
+**Reconciliation.** Keep event dates and reference IDs. Match FNSKUs directly and use an MSKU/SKU alias when it identifies a single product. Count each reimbursed unit once. Detect duplicate files and overlapping summary/detail coverage. Flag ambiguous overlap or identifiers for seller review. When reimbursements identify only the SKU, show how much expiring value can be supported. For example, three expiring units plus three newer units less two undated credits can leave one to three expiring units. Show the conservative amount in the alert and explain the range. Render uploaded fields as text and escape spreadsheet exports.
+
+**Paid packet.** Rank `Claimable_Audit_Packet.csv` by the nearest filing deadline and then by estimated value. Group `Seller_Central_Case_Scripts.txt` into cases with at most five identifiers each. Describe five as the packet’s grouping limit. Put the general support path and a reminder to verify the exact current Seller Central category in every generated case. Offer every seller a 30-day calendar reminder pointing back to the live auditor. The paywall will show what a 25% fee would cost if the estimated amount were recovered, our $29 fee and the signed difference, including when the flat fee costs more.
+
+**Search tools.** Add nine tools alongside the five existing addresses. They cover unreturned-refund filing dates, 14-day expiration exposure, unreimbursed unit reconciliation, batch manufacturing cost per unit, reimbursement value variance, a flat-fee versus percentage comparison, overlapping report dates, opening-to-closing ledger balance variance, and five-identifier case planning. The balance tool will flag unexplained movements for review. The inbound and refund tools will label their windows as general guidance. Other fee comparisons will use seller-entered values. The paid CSV engine will cover only the supplied ledger and reimbursement formats.
+
+## Price and 180-day gross revenue
+
+Keep the existing $29 Stripe Payment Link. An illustrative agency charging 25% and this product charge the same fee at $116 actually recovered. At $80 recovered the flat fee costs $9 more. At $400 recovered it costs $71 less. These examples assume identical recovery outcomes and compare fees only. Agency rates vary. The seller files their own case.
+
+| First 180 days | New organic visitors | Complete a real audit | Completed audits with a priced, in-window finding | Buy among those with a finding | Visitor-to-paid | Expected orders | Gross at $29 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Low | 500 | 8% | 25% | 10% | 0.20% | 1 | $29 |
+| Base | 2,500 | 12% | 40% | 10% | 0.48% | 12 | $348 |
+| High | 10,000 | 20% | 50% | 15% | 1.50% | 150 | $4,350 |
+
+Each row multiplies visitors × audit completion × share with a priced, in-window finding × purchase rate among that group × $29. These are sensitivity assumptions. They assume 180 days after launch, first-time visitors from organic search and AI referrals only, $0 acquisition spend, at most one purchase per visitor, one USD price, and gross sales before fees, refunds or taxes. Demo runs and repeat purchases contribute zero. No measured acquisition, conversion or price-response data informed the inputs. Zero sales are possible. The rows have no assigned probabilities.
+
+At equal traffic, $49 beats $29 only if it retains more than 29/49 (59.18%) of the $29 purchase rate. The price shown in the current checkout button matches this proposal. The relative purchase rate at $49 is unknown. Keeping $29 requires zero Stripe configuration changes. When actual traffic and paid orders are available, use them to revisit pricing.
+
+## Release checks after approval
+
+Phase 1 will preserve the repository-root deployment and the payment return flow. Phase 2 will test BOMs, quoted commas and line breaks, invalid headers, empty files, ambiguous dates, repeated uploads, reimbursements across dated events, and day 45/46/60/61 boundaries. Phase 3 will exercise every calculator. Phase 4 will check canonical destinations, metadata, schema, crawler files and internal paths. Phase 5 will distinguish verified behavior from outstanding live checks and list the files, commit IDs and Stripe configuration location.
+
+The current verifier bases its decision solely on the Stripe session’s paid status. A product-specific entitlement would require another check. The unlock is stored in the buyer’s browser profile. Those facts limit entitlement enforcement and are another reason to launch with a single price. [Verifier](https://github.com/carriercompliancesystems/fba-ledger-audit/blob/c742c45da7582b03d68198b97e1b255b52b94cf0/functions/api/verify.js#L34)
