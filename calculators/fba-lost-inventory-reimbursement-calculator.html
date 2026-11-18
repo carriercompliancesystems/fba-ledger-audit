@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazon FBA Lost & Damaged Inventory Reimbursement Calculator (2026 Rules)</title>
+  <meta name="description" content="Estimate your Amazon FBA lost and warehouse-damaged reimbursement payout under Amazon's manufacturing-cost policy and compare flat-fee vs. 25% agency cuts." />
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; max-width: 760px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-top: 12px; }
+    input, button { width: 100%; padding: 12px; margin-top: 6px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 15px; box-sizing: border-box; }
+    button { background: #38bdf8; color: #0f172a; font-weight: 700; border: none; cursor: pointer; margin-top: 18px; }
+    .out { margin-top: 18px; padding: 16px; background: #0f172a; border-radius: 8px; border-left: 4px solid #22c55e; }
+    a { color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <p><a href="/">&larr; Back to Full FBA Inventory Ledger CSV Auditor</a></p>
+  <div class="card">
+    <h1>Amazon FBA Lost &amp; Damaged Reimbursement Calculator</h1>
+    <p>Amazon reimburses fulfillment-center lost and damaged units using sourced manufacturing cost rather than retail price. Calculate your estimated recovery and compare keeping 100% of your payout vs. paying a 25% recovery agency cut.</p>
+    <label for="units">Unreconciled Lost or Warehouse-Damaged Units (Last 60 Days)</label>
+    <input type="number" id="units" value="25" min="1" />
+    <label for="mfgCost">Unit Manufacturing / Landed Cost ($ USD)</label>
+    <input type="number" id="mfgCost" value="12.50" step="0.25" min="0.50" />
+    <button onclick="calcReimb()">Calculate Net FBA Recovery</button>
+    <div id="out" class="out" style="display:none;"></div>
+  </div>
+  <script>
+    function calcReimb() {
+      const u = parseFloat(document.getElementById("units").value) || 0;
+      const c = parseFloat(document.getElementById("mfgCost").value) || 0;
+      const gross = u * c;
+      const agencyCut = gross * 0.25;
+      const diyNet = Math.max(0, gross - 29);
+      const box = document.getElementById("out");
+      box.style.display = "block";
+      box.innerHTML = `
+        <strong>Estimated Gross Amazon Reimbursement: $${gross.toFixed(2)}</strong><br>
+        &bull; If using a 25% contingency agency: You lose <strong>$${agencyCut.toFixed(2)}</strong> in fees (Net: $${(gross - agencyCut).toFixed(2)})<br>
+        &bull; If using our $29 flat-fee Ledger Auditor: You keep <strong>$${diyNet.toFixed(2)}</strong><br><br>
+        <a href="/">Upload your Amazon Inventory Ledger CSV to extract exact FNSKUs &amp; Reference IDs &rarr;</a>
+      `;
+    }
+  </script>
+</body>
+</html>
