@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazon FBA Dimensional Weight & Size Tier Overcharge Calculator</title>
+  <meta name="description" content="Calculate Amazon FBA dimensional weight (L x W x H / 139) and check if a Cubiscan measurement error pushed your SKU into a higher fulfillment fee tier." />
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; max-width: 760px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-top: 10px; }
+    input, button { width: 100%; padding: 12px; margin-top: 6px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 15px; box-sizing: border-box; }
+    button { background: #38bdf8; color: #0f172a; font-weight: 700; border: none; cursor: pointer; margin-top: 18px; }
+    .out { margin-top: 18px; padding: 16px; background: #0f172a; border-radius: 8px; border-left: 4px solid #38bdf8; }
+    a { color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <p><a href="/">&larr; Back to Full FBA Inventory Ledger CSV Auditor</a></p>
+  <div class="card">
+    <h1>Amazon FBA Dimensional Weight &amp; Size Tier Calculator</h1>
+    <p>Check your exact FBA dimensional weight (<code>Length &times; Width &times; Height &divide; 139</code>) to spot Cubiscan dimension inflation before filing a re-measurement or fee reimbursement claim.</p>
+    <div class="row">
+      <div><label>Longest Side (in)</label><input type="number" id="l" value="14" step="0.1" /></div>
+      <div><label>Median Side (in)</label><input type="number" id="w" value="10" step="0.1" /></div>
+      <div><label>Shortest Side (in)</label><input type="number" id="h" value="4" step="0.1" /></div>
+      <div><label>Unit Weight (lbs)</label><input type="number" id="wt" value="1.5" step="0.1" /></div>
+    </div>
+    <button onclick="calcDim()">Calculate FBA Size Tier &amp; Billable Weight</button>
+    <div id="out" class="out" style="display:none;"></div>
+  </div>
+  <script>
+    function calcDim() {
+      const dims = [
+        parseFloat(document.getElementById("l").value) || 0,
+        parseFloat(document.getElementById("w").value) || 0,
+        parseFloat(document.getElementById("h").value) || 0
+      ].sort((a, b) => b - a);
+      const actualWt = parseFloat(document.getElementById("wt").value) || 0;
+      const dimWt = (dims[0] * dims[1] * dims[2]) / 139;
+      let tier = "Extra-Large / Oversize";
+      if (dims[0] <= 15 && dims[1] <= 12 && dims[2] <= 0.75 && actualWt <= 1) tier = "Small Standard-Size (Uses Unit Weight Only)";
+      else if (dims[0] <= 18 && dims[1] <= 14 && dims[2] <= 8 && Math.max(actualWt, dimWt) <= 20) tier = "Large Standard-Size";
+      else if (dims[0] <= 59 && dims[1] <= 33 && dims[2] <= 33 && Math.max(actualWt, dimWt) <= 50) tier = "Large Bulky";
+
+      const billable = tier.startsWith("Small Standard") ? actualWt : Math.max(actualWt, dimWt);
+      const box = document.getElementById("out");
+      box.style.display = "block";
+      box.innerHTML = `
+        <strong>Detected Tier: ${tier}</strong><br>
+        &bull; Dimensional Weight: <strong>${dimWt.toFixed(2)} lbs</strong> (Actual: ${actualWt.toFixed(2)} lbs)<br>
+        &bull; FBA Billable Shipping Weight: <strong>${billable.toFixed(2)} lbs</strong><br><br>
+        <a href="/">Audit your FBA Inventory Ledger CSV for lost/damaged units &rarr;</a>
+      `;
+    }
+  </script>
+</body>
+</html>
