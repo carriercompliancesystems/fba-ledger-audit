@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazon FBA 60-Day Reimbursement Claim Deadline Calculator</title>
+  <meta name="description" content="Calculate the exact expiration date for an Amazon FBA lost or damaged inventory reimbursement claim under Amazon's 60-day policy window." />
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; max-width: 720px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; }
+    input, select, button { width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 16px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 15px; }
+    button { background: #38bdf8; color: #0f172a; font-weight: 700; border: none; cursor: pointer; }
+    .out { padding: 16px; background: #0f172a; border-radius: 8px; border-left: 4px solid #22c55e; }
+    a { color: #38bdf8; }
+  </style>
+</head>
+<body>
+  <p><a href="/">&larr; Back to Full FBA Inventory Ledger CSV Auditor</a></p>
+  <div class="card">
+    <h1>Amazon FBA 60-Day Claim Deadline Calculator</h1>
+    <p>Amazon shortened most FBA fulfillment-center lost/damaged claim windows from 18 months to <strong>60 days</strong>. Enter your Inventory Ledger event date below to check remaining filing days.</p>
+    <label for="evDate">Inventory Ledger Event / Adjustment Date</label>
+    <input type="date" id="evDate" />
+    <label for="claimType">Claim Category</label>
+    <select id="claimType">
+      <option value="60">Fulfillment Center Lost / Damaged Inventory (60 Days)</option>
+      <option value="60">FBA Customer Return Discrepancy (60–120 Days)</option>
+      <option value="270">Inbound Shipment Discrepancy (Up to 9 Months from Delivery)</option>
+    </select>
+    <button onclick="calc()">Calculate Claim Deadline</button>
+    <div id="res" class="out" style="display:none;"></div>
+  </div>
+  <script>
+    function calc() {
+      const raw = document.getElementById("evDate").value;
+      if (!raw) return;
+      const days = parseInt(document.getElementById("claimType").value, 10);
+      const start = new Date(raw + "T00:00:00");
+      const deadline = new Date(start.getTime() + days * 86400000);
+      const rem = Math.ceil((deadline.getTime() - Date.now()) / 86400000);
+      const box = document.getElementById("res");
+      box.style.display = "block";
+      box.style.borderLeftColor = rem > 0 ? "#22c55e" : "#ef4444";
+      box.innerHTML = rem > 0
+        ? `<strong>ELIGIBLE — ${rem} Days Left to File</strong><br>Hard Deadline: <strong>${deadline.toDateString()}</strong>.<br><br><a href="/">Upload your full Inventory Ledger CSV to audit all SKUs at once &rarr;</a>`
+        : `<strong>EXPIRED (${Math.abs(rem)} Days Past Window)</strong><br>Deadline passed on ${deadline.toDateString()}. Audit your newer Ledger rows immediately before they expire.`;
+    }
+  </script>
+</body>
+</html>

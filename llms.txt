@@ -1,0 +1,4 @@
+# FBA Ledger Audit
+> Free client-side Amazon FBA 60-Day Inventory Ledger Discrepancy Auditor and Claim Deadline Calculator.
+- [FBA 60-Day Inventory Ledger CSV Auditor](/): Detects unreconciled lost and warehouse-damaged units inside Amazon's 60-day claim window locally in the browser without Seller Central API credentials.
+- [Amazon FBA 60-Day Claim Deadline Calculator](/calculators/fba-60-day-deadline-checker.html): Calculates exact filing expiration dates for FBA inventory discrepancies.
