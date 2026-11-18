@@ -103,3 +103,26 @@ if (menuHost) {
   });
   menu.addEventListener("focusout", event => { if (event.relatedTarget && !menu.contains(event.relatedTarget)) menu.open = false; });
 }
+
+// Static fallback content in every page is also available to readers without JavaScript.
+const isAuditor = Boolean(document.getElementById("auditor"));
+const trustItems = isAuditor
+  ? ["CSV stays on your device", "No Seller Central API keys", "Flat one-time fee"]
+  : ["Runs in your browser", "No Seller Central API keys", "Free calculator"];
+const trust = document.querySelector(".trust-inner");
+if (trust) trust.replaceChildren(...trustItems.map(text => {
+  const item = document.createElement("span");
+  item.textContent = text;
+  return item;
+}));
+const footer = document.querySelector(".foot-row");
+if (footer) {
+  footer.querySelector("p").textContent = "Not affiliated with or endorsed by Amazon.com, Inc. or any of its affiliates.";
+  const links = [["Auditor", "/#auditor"], ["Calculator directory", "/#calculators"], ["Back to top ↑", "#top"]];
+  footer.querySelector("nav").replaceChildren(...links.map(([label, href]) => {
+    const link = document.createElement("a");
+    link.href = href;
+    link.textContent = label;
+    return link;
+  }));
+}

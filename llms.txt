@@ -1,4 +1,35 @@
 # FBA Ledger Audit
-> Free client-side Amazon FBA 60-Day Inventory Ledger Discrepancy Auditor and Claim Deadline Calculator.
-- [FBA 60-Day Inventory Ledger CSV Auditor](/): Detects unreconciled lost and warehouse-damaged units inside Amazon's 60-day claim window locally in the browser without Seller Central API credentials.
-- [Amazon FBA 60-Day Claim Deadline Calculator](/calculators/fba-60-day-deadline-checker.html): Calculates exact filing expiration dates for FBA inventory discrepancies.
+
+> A browser-local Inventory Ledger and Reimbursements CSV auditor for Amazon FBA sellers. The free preview estimates unresolved fulfillment-center lost or warehouse-damaged units. A $29 one-time Stripe payment unlocks the ranked CSV and editable Seller Central case scripts in the buyer’s browser profile.
+
+## Auditor
+
+- [Free in-browser audit](https://fba-ledger-audit.pages.dev/): Import one store’s Summary or Detailed Ledger CSV and an optional Reimbursements CSV. No Seller Central API keys or CSV uploads to a server.
+- The editable $15.00 unit cost is illustrative until the seller supplies sourced manufacturing cost. The auditor highlights event ages 46–60 days. Reimbursements and found units can reduce estimates. Amazon determines actual eligibility and payment.
+- The 25% comparison is illustrative; agency rates vary. The seller reviews and files the case. Refund and inbound dates are general guidance. Verify exact current menu labels, category and eligibility in Seller Central before submitting.
+- The audit provides Claimable_Audit_Packet.csv, Seller_Central_Case_Scripts.txt and a 30-day calendar reminder. Calculator results depend on the seller’s inputs and applicable rate or tier.
+
+## Filing windows
+
+- [60-day deadline checker](https://fba-ledger-audit.pages.dev/calculators/fba-60-day-deadline-checker): Calculate the 60-day filing date for a fulfillment-center lost or damaged inventory adjustment and see how many calendar days remain.
+- [Inbound shipment shortage](https://fba-ledger-audit.pages.dev/calculators/fba-inbound-shipment-discrepancy-calculator): Compare delivered and checked-in units and check the general nine-month inbound discrepancy window from the delivery date.
+- [Unreturned refund checker](https://fba-ledger-audit.pages.dev/calculators/fba-unreturned-customer-refund-45-day-checker): Check the 45-day waiting period and general day 46–120 filing window for a customer refund without a matching return.
+
+## Fees & measurements
+
+- [Dimensional weight](https://fba-ledger-audit.pages.dev/calculators/fba-dim-weight-fee-overcharge-calculator): Calculate FBA dimensional weight with length × width × height ÷ 139 or your own divisor. Compare the result with the package weight.
+- [Monthly storage fee](https://fba-ledger-audit.pages.dev/calculators/fba-monthly-cubic-foot-storage-fee-calculator): Estimate monthly cubic-foot storage fees and an optional aged-inventory surcharge using your inventory volume and applicable rates.
+- [28-day supply fee](https://fba-ledger-audit.pages.dev/calculators/fba-low-inventory-level-28-day-supply-fee-calculator): Compare estimated days of supply with an editable 28-day target. Model a low-inventory-level fee with your confirmed assessed units and per-unit rate.
+- [Referral fee overcharge](https://fba-ledger-audit.pages.dev/calculators/fba-referral-fee-category-overcharge-calculator): Compare billed and expected referral fee percentages on your transaction fee basis. Estimate the category-rate difference across equivalent sales.
+- [Return processing fee](https://fba-ledger-audit.pages.dev/calculators/fba-return-processing-fee-calculator): Compare a billed return processing fee with your verified rate and fee-bearing return count. See the signed difference.
+
+## Inventory reconciliation
+
+- [Removal order shortage](https://fba-ledger-audit.pages.dev/calculators/fba-removal-order-shortage-calculator): Compare removal order quantities with units received and still in transit to isolate an unexplained inventory shortage.
+- [Stranded inventory risk](https://fba-ledger-audit.pages.dev/calculators/fba-stranded-inventory-risk-calculator): Estimate the manufacturing value tied up in stranded inventory and model carrying costs over a time period you select.
+- [Lost or damaged payout](https://fba-ledger-audit.pages.dev/calculators/fba-lost-inventory-reimbursement-calculator): Estimate the manufacturing-cost value of lost or warehouse-damaged FBA units after found units and reimbursements.
+- [Manufacturing cost estimator](https://fba-ledger-audit.pages.dev/calculators/fba-manufacturing-cost-reimbursement-estimator): Derive sourced manufacturing cost per unit from a production batch and estimate the value of unresolved fulfillment-center inventory.
+- [Agency vs. flat fee](https://fba-ledger-audit.pages.dev/calculators/fba-recovery-agency-vs-flat-fee-calculator): Compare an illustrative 25% recovery fee with the $29 audit packet. See the seller’s net amount, fee difference and break-even recovery.
+- [Ledger balance variance](https://fba-ledger-audit.pages.dev/calculators/fba-inventory-ledger-balance-variance-calculator): Rebuild ending inventory from signed movements and compare it with the reported ending balance to investigate a ledger variance.
+
+Not affiliated with or endorsed by Amazon.com, Inc. or any of its affiliates.

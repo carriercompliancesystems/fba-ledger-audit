@@ -102,10 +102,15 @@ export function parseReport(input, name, order = "auto", asOf = todayDay()) {
     else throw new Error("Unrecognized report. Expected Ledger lost/damaged/found columns, detailed event columns, or a reimbursed quantity.");
     const missing = (type === "Summary Ledger" ? SUMMARY : type === "Detailed Ledger" ? DETAIL : []).filter(k => !keys.includes(k));
     if (missing.length) throw new Error("Missing required columns for " + type + " — " + missing.join(", ") + ".");
-    const rows = [];
+    const rows = [], seenLedgerRows = new Set();
     for (const record of data) {
       try {
         if (record.fields.length !== keys.length) throw new Error("Expected " + keys.length + " columns and found " + record.fields.length + ". Check delimiters and quotes.");
+        if (type !== "Reimbursements") {
+          const fingerprint = JSON.stringify(record.fields);
+          if (seenLedgerRows.has(fingerprint)) throw new Error("Identical ledger row occurs twice. Verify the source or use a detailed export with distinct references.");
+          seenLedgerRows.add(fingerprint);
+        }
         const r = Object.fromEntries(keys.map((key,index) => [key,record.fields[index]]));
         const row = { fnsku:r.fnsku || "", alias:r.msku || r.sku || "", title:r.title || "", ref:r.referenceid || "", day:null, lost:0, damaged:0, found:0, paid:0, line:record.line };
         if (!row.fnsku && !row.alias) throw new Error("Missing item identifier.");
@@ -113,6 +118,7 @@ export function parseReport(input, name, order = "auto", asOf = todayDay()) {
           const col = REIMB.find(k => r[k] !== undefined && r[k] !== "");
           if (!col) throw new Error("Missing reimbursed quantity.");
           row.paid = units(r[col], "Reimbursed quantity");
+          if (r.quantityreimbursedtotal && r.quantityreimbursedinventory && units(r.quantityreimbursedinventory,"Inventory reimbursement quantity") > row.paid) throw new Error("Inventory reimbursement quantity exceeds the reported total. Review this row.");
           if (row.paid < 0) throw new Error("Negative reimbursement adjustment. Resolve reversals before using this report.");
         } else {
           row.day = parseDay(r.date, order);
@@ -138,8 +144,9 @@ export function parseReport(input, name, order = "auto", asOf = todayDay()) {
 }
 
 function collectGroups(reports) {
-  const aliases = new Map(), groups = new Map(), notes = [];
+  const aliases = new Map(), knownFNSKUs = new Set(), groups = new Map(), notes = [];
   for (const {rows} of reports) for (const row of rows) {
+    if (row.fnsku) knownFNSKUs.add(row.fnsku);
     if (!row.fnsku || !row.alias) continue;
     if (!aliases.has(row.alias)) aliases.set(row.alias,new Set());
     aliases.get(row.alias).add(row.fnsku);
@@ -154,9 +161,10 @@ function collectGroups(reports) {
     if (isPaid) hasReimbursements = true; else hasLedger = true;
     const cover = new Map();
     for (const row of report.rows) {
-      const matches = aliases.get(row.alias);
-      if (!row.fnsku && matches?.size > 1) throw new Error(report.name + ", line " + row.line + " — " + row.alias + " maps to several FNSKUs. Use FNSKU-level data.");
-      const fnsku = row.fnsku || (matches ? [...matches][0] : "");
+      const matches = new Set(aliases.get(row.alias));
+      if (knownFNSKUs.has(row.alias)) matches.add(row.alias);
+      if (!row.fnsku && matches.size > 1) throw new Error(report.name + ", line " + row.line + " — " + row.alias + " maps to several FNSKUs. Use FNSKU-level data.");
+      const fnsku = row.fnsku || (matches.size ? [...matches][0] : "");
       const id = fnsku || row.alias, key = (fnsku ? "F:" : "M:") + id;
       if (!groups.has(key)) groups.set(key,{key,id,kind:fnsku?"FNSKU":"Seller SKU",title:"",losses:[],credits:[],ranges:[],paymentFile:null});
       const g = groups.get(key);
@@ -178,6 +186,8 @@ function collectGroups(reports) {
     }
   }
   if (!hasLedger) throw new Error("Add an Inventory Ledger CSV. A Reimbursements report by itself cannot identify losses.");
+  const unmatched = [...groups.values()].filter(g=>g.paymentFile && !g.ranges.length).length;
+  if (unmatched) notes.push(unmatched+" reimbursed item identifier(s) had no corresponding ledger identifier. Confirm the SKU mapping and coverage.");
   return {groups,notes,hasReimbursements};
 }
 function allocate(group, asOf, conservative) {
@@ -209,7 +219,10 @@ function allocate(group, asOf, conservative) {
     const left = exact ? apply(credit,credit.found+credit.paid,exact,false) : credit.found+credit.paid;
     if (left) pooled.push({credit,left});
   }
-  for (const {credit,left} of pooled) apply(credit,left,losses,true);
+  for (const {credit,left} of pooled) {
+    for (const l of losses) if (l.open && (credit.day === null || l.day <= credit.day)) l.pooled = true;
+    apply(credit,left,losses,true);
+  }
   return losses;
 }
 export function reconcile(reports, asOf = todayDay()) {

@@ -82,3 +82,13 @@ test("calendar event spans one all-day date 30 calendar days after the audit",()
  const s=reminderICS(new Date(2026,0,15,12));assert.match(s,/DTSTART;VALUE=DATE:20260214\r\nDTEND;VALUE=DATE:20260215/);
  assert.match(s,/URL:https:\/\/fba-ledger-audit.pages.dev\//);assert.ok(s.endsWith("END:VCALENDAR\r\n"));
 });
+test("a generic SKU column can match a unique literal FNSKU and collisions require review",()=>{
+ const ledger=parse(detail+"\n"+event(12,-3,"X"));
+ assert.equal(priceAudit(audit(ledger,parse("SKU,Quantity\nX,2"))).units,1);
+ const conflict=parse(summary+"\n2026-11-10,Y,X,3,0,0");
+ assert.throws(()=>audit(ledger,conflict,parse("SKU,Quantity\nX,2")),/several FNSKUs/);
+});
+test("inconsistent totals and identical ledger records require review",()=>{
+ assert.throws(()=>parse("FNSKU,Quantity Reimbursed Total,Quantity Reimbursed Inventory\nX,2,4"),/exceeds/);
+ assert.throws(()=>parse([detail,event(5,-1,"S","R"),event(5,-1,"S","R")].join("\n")),/Identical ledger/);
+});

@@ -184,3 +184,6 @@ td small { display: block; color: var(--muted); }
   .calc-hero { padding-bottom: 26px; }
 }
 @media(max-width: 420px) { .calc-form .fields { grid-template-columns: 1fr; } }
+.report-guide { color: var(--muted); margin: 0 0 17px; font-size: .85rem; }
+.report-guide summary { cursor: pointer; color: var(--text); }
+.report-guide p { margin-top: 8px; max-width: 780px; }

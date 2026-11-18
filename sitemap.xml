@@ -2,26 +2,47 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://fba-ledger-audit.pages.dev/</loc>
-    <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-60-day-deadline-checker.html</loc>
-    <priority>0.8</priority>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-dim-weight-fee-overcharge-calculator</loc>
   </url>
   <url>
-    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-lost-inventory-reimbursement-calculator.html</loc>
-    <priority>0.8</priority>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-monthly-cubic-foot-storage-fee-calculator</loc>
   </url>
   <url>
-    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-dim-weight-fee-overcharge-calculator.html</loc>
-    <priority>0.8</priority>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-low-inventory-level-28-day-supply-fee-calculator</loc>
   </url>
   <url>
-    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-aged-inventory-surcharge-calculator.html</loc>
-    <priority>0.8</priority>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-removal-order-shortage-calculator</loc>
   </url>
   <url>
-    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-inbound-shipment-discrepancy-calculator.html</loc>
-    <priority>0.8</priority>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-referral-fee-category-overcharge-calculator</loc>
+  </url>
+  <url>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-stranded-inventory-risk-calculator</loc>
+  </url>
+  <url>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-return-processing-fee-calculator</loc>
+  </url>
+  <url>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-60-day-deadline-checker</loc>
+  </url>
+  <url>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-lost-inventory-reimbursement-calculator</loc>
+  </url>
+  <url>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-inbound-shipment-discrepancy-calculator</loc>
+  </url>
+  <url>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-unreturned-customer-refund-45-day-checker</loc>
+  </url>
+  <url>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-manufacturing-cost-reimbursement-estimator</loc>
+  </url>
+  <url>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-recovery-agency-vs-flat-fee-calculator</loc>
+  </url>
+  <url>
+    <loc>https://fba-ledger-audit.pages.dev/calculators/fba-inventory-ledger-balance-variance-calculator</loc>
   </url>
 </urlset>

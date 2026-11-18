@@ -54,3 +54,8 @@ test("signed ledger movements reproduce the supplied eight-unit variance",()=>{
  const v={opening:400,receipts:200,shipped:-180,returns:5,found:1,lost:9,damaged:4,other:0,ending:421};
  assert.equal(f.variance(v).value,"+8 units");assert.equal(f.variance({...v,other:8}).value,"0 units");
 });
+
+test("refund checker accepts marketplace-specific dates and rejects a reversed window",()=>{
+  assert.equal(f.refund({refund:"2026-11-01",asof:"2026-12-17",wait:59,last:120}).value,"Wait 14 days");
+  assert.throws(()=>f.refund({refund:"2026-11-01",asof:"2026-12-17",wait:120,last:60}),/last filing day/);
+});

@@ -64,8 +64,10 @@ export const formulas={
   },
   refund(v) {
     const age=since(v.refund,v.asof),start=parseDay(v.refund);
-    const status=age<46?"Wait "+num(46-age)+(46-age===1?" day":" days"):age>120?"Window passed":age===120?"Last day":"Review for filing";
-    return result("Refund timing",status,"General guidance opens "+isoDay(start+46)+" (day 46) and ends "+isoDay(start+120)+" (day 120). Check for a physical return or reimbursement before filing.",[bar("Days since refund",age),bar("End of guidance window (days)",120)]);
+    const first=(v.wait ?? 45)+1, last=v.last ?? 120;
+    if(last<first) throw new Error("The last filing day must follow the waiting period.");
+    const status=age<first?"Wait "+num(first-age)+(first-age===1?" day":" days"):age>last?"Window passed":age===last?"Last day":"Review for filing";
+    return result("Refund timing",status,"Using the entered limits, the window opens "+isoDay(start+first)+" (day "+first+") and ends "+isoDay(start+last)+" (day "+last+"). Confirm eligibility, any physical return and prior payments in Seller Central.",[bar("Days since refund",age),bar("Last filing day entered",last)]);
   },
   manufacturing(v) {
     const each=v.batch/v.produced;
