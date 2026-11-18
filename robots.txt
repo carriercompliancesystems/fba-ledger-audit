@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://fba-ledger-audit.pages.dev/sitemap.xml
