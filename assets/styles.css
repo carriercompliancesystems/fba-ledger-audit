@@ -187,3 +187,7 @@ td small { display: block; color: var(--muted); }
 .report-guide { color: var(--muted); margin: 0 0 17px; font-size: .85rem; }
 .report-guide summary { cursor: pointer; color: var(--text); }
 .report-guide p { margin-top: 8px; max-width: 780px; }
+
+.sample-packet { margin-top: 12px; font-size: .85rem; }
+.sample-packet summary { color: var(--accent); cursor: pointer; }
+.sample-packet pre { padding: 12px; border-radius: 5px; background: var(--inset); white-space: pre-wrap; overflow-wrap: anywhere; font: .8rem/1.5 var(--mono); }

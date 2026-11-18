@@ -67,6 +67,7 @@ async function auditFiles() {
 }
 function add(files) {
   if (!files.length) return;
+  if(demo) { get("defaultCost").value="15.00"; confirmed=false; }
   if(demo || (!selected.length && audit)){costs=Object.create(null);}
   selected.push(...files);auditFiles();
 }
@@ -132,9 +133,13 @@ function updatePrices() {
   get("findingsTable").querySelector("caption").textContent=rows.length?(pay.unlocked?"Event-level findings":"Free preview · "+Math.min(3,rows.length)+" of "+rows.length+" event rows"):"No unresolved in-window events";
   get("paywallBox").classList.toggle("hidden",pay.unlocked || !rows.length);
   get("unlockedBanner").classList.toggle("hidden",!pay.unlocked);
-  get("checkoutBtn").disabled=demo || !rows.length;
-  get("checkoutBtn").textContent=demo?"Run your own audit to unlock":"Unlock exports · $29 →";
+  get("checkoutBtn").disabled=!rows.length;
+  get("checkoutBtn").textContent=demo?"Choose your own CSVs →":"Unlock exports · $29 →";
   get("downloadCsvBtn").disabled=!rows.length;get("downloadCasesBtn").disabled=!rows.length;
+  const sample=get("samplePacket");
+  sample.hidden=!demo || !rows.length;
+  if(!sample.hidden) sample.querySelector("pre").textContent=caseScripts({...priced,rows:rows.slice(0,1)},audit);
+  else { sample.open=false; sample.querySelector("pre").textContent=""; }
   const comparison=get("feeComparison");comparison.replaceChildren(node("strong","25% comparison · illustrative; agency rates vary"));
   comparison.append(node("p","If "+money(total)+" is recovered in full, the illustrative agency fee is "+money(fee)+" and the flat fee is "+money(CHECKOUT.priceUSD*100)+". "+(difference>0?"You keep "+money(difference)+" more after the flat fee.":difference<0?"You keep "+money(-difference)+" less after the flat fee.":"You keep the same amount under either fee.")));
   if(!rows.length) notice(urgency,urgency.textContent+" There is no packet to purchase for these reports.");
@@ -165,7 +170,10 @@ get("defaultCost").addEventListener("input",()=>{confirmed=true;updatePrices();}
 get("sampleBtn").addEventListener("click",()=>runDemo());
 get("heroSample").addEventListener("click",()=>runDemo(true));
 clearButton.addEventListener("click",clearAll);
-get("checkoutBtn").addEventListener("click",()=>{if(fresh() && !demo && priced.rows.length) pay.checkout({version:2,audit,costs,confirmed,defaultValue:get("defaultCost").value,available});});
+get("checkoutBtn").addEventListener("click",()=>{
+  if (demo) { get("reportFiles").click(); return; }
+  if (fresh() && priced.rows.length) pay.checkout({version:2,audit,costs,confirmed,defaultValue:get("defaultCost").value,available});
+});
 get("downloadCsvBtn").addEventListener("click",()=>{if(pay.unlocked && fresh())download("Claimable_Audit_Packet.csv",auditCSV(priced,audit),"text/csv;charset=utf-8");});
 get("downloadCasesBtn").addEventListener("click",()=>{if(pay.unlocked && fresh())download("Seller_Central_Case_Scripts.txt",caseScripts(priced,audit),"text/plain;charset=utf-8");});
 const reminder=node("button","Download 30-day reminder","button");
