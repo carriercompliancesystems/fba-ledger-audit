@@ -1,50 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Amazon FBA 60-Day Reimbursement Claim Deadline Calculator</title>
-  <meta name="description" content="Calculate the exact expiration date for an Amazon FBA lost or damaged inventory reimbursement claim under Amazon's 60-day policy window." />
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; max-width: 720px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; }
-    input, select, button { width: 100%; padding: 12px; margin-top: 8px; margin-bottom: 16px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 15px; }
-    button { background: #38bdf8; color: #0f172a; font-weight: 700; border: none; cursor: pointer; }
-    .out { padding: 16px; background: #0f172a; border-radius: 8px; border-left: 4px solid #22c55e; }
-    a { color: #38bdf8; }
-  </style>
-</head>
-<body>
-  <p><a href="/">&larr; Back to Full FBA Inventory Ledger CSV Auditor</a></p>
-  <div class="card">
-    <h1>Amazon FBA 60-Day Claim Deadline Calculator</h1>
-    <p>Amazon shortened most FBA fulfillment-center lost/damaged claim windows from 18 months to <strong>60 days</strong>. Enter your Inventory Ledger event date below to check remaining filing days.</p>
-    <label for="evDate">Inventory Ledger Event / Adjustment Date</label>
-    <input type="date" id="evDate" />
-    <label for="claimType">Claim Category</label>
-    <select id="claimType">
-      <option value="60">Fulfillment Center Lost / Damaged Inventory (60 Days)</option>
-      <option value="60">FBA Customer Return Discrepancy (60–120 Days)</option>
-      <option value="270">Inbound Shipment Discrepancy (Up to 9 Months from Delivery)</option>
-    </select>
-    <button onclick="calc()">Calculate Claim Deadline</button>
-    <div id="res" class="out" style="display:none;"></div>
-  </div>
-  <script>
-    function calc() {
-      const raw = document.getElementById("evDate").value;
-      if (!raw) return;
-      const days = parseInt(document.getElementById("claimType").value, 10);
-      const start = new Date(raw + "T00:00:00");
-      const deadline = new Date(start.getTime() + days * 86400000);
-      const rem = Math.ceil((deadline.getTime() - Date.now()) / 86400000);
-      const box = document.getElementById("res");
-      box.style.display = "block";
-      box.style.borderLeftColor = rem > 0 ? "#22c55e" : "#ef4444";
-      box.innerHTML = rem > 0
-        ? `<strong>ELIGIBLE — ${rem} Days Left to File</strong><br>Hard Deadline: <strong>${deadline.toDateString()}</strong>.<br><br><a href="/">Upload your full Inventory Ledger CSV to audit all SKUs at once &rarr;</a>`
-        : `<strong>EXPIRED (${Math.abs(rem)} Days Past Window)</strong><br>Deadline passed on ${deadline.toDateString()}. Audit your newer Ledger rows immediately before they expire.`;
-    }
-  </script>
-</body>
-</html>
+<!doctype html>
+<html lang="en" id="top"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FBA 60-Day Lost Inventory Claim Deadline Checker | FBA Ledger Audit</title>
+<meta name="description" content="Calculate the 60-day filing date for a fulfillment-center lost or damaged inventory adjustment and see how many calendar days remain.">
+<link rel="canonical" href="https://fba-ledger-audit.pages.dev/calculators/fba-60-day-deadline-checker"><meta name="theme-color" content="#101921">
+<link rel="stylesheet" href="/assets/styles.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "When does the auditor show an expiration alert?", "acceptedAnswer": {"@type": "Answer", "text": "It includes open event rows aged 46 through 60 days, after found and reimbursed units are allocated."}}, {"@type": "Question", "name": "Can I use a customer refund date here?", "acceptedAnswer": {"@type": "Answer", "text": "Use the unreturned customer refund checker for a refund. Its waiting period and filing window follow different guidance."}}]}</script>
+<script type="module" src="/assets/layout.js"></script></head><body>
+<a class="skip" href="#main">Skip to content</a><header class="mast"><div class="container mast-inner"><a class="brand" href="/" aria-label="FBA Ledger Audit, home"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>FBA Ledger Audit</a><nav aria-label="Main navigation"><div data-tools-menu><a href="/#calculators">Calculators</a></div><a class="nav-cta" href="/#auditor">Open auditor <span aria-hidden="true">↗</span></a></nav></div></header><main id="main"><section class="calc-hero"><div class="container"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Auditor</a><span aria-hidden="true">/</span><a href="/#calculators">Calculators</a></nav><p class="kicker">Filing windows</p><h1>FBA 60-Day Lost Inventory Claim Deadline Checker</h1><p class="lead">Use the date of the inventory ledger event or adjustment to calculate the fulfillment-center lost or damaged filing window.</p></div></section><div class="trust"><div class="container trust-inner"><span>Runs in your browser</span><span>No Seller Central API keys</span><span>Free calculator</span></div></div>
+<div class="container"><section class="section calculator-grid"><form class="panel calc-form" data-calculator="deadline"><div class="section-head"><h2>Your inputs</h2><button class="text-button" type="reset">Reset example</button></div><p class="hint">Starting figures are illustrative. Replace them with your own records and any applicable rates or thresholds.</p><div class="fields"><label for="field-event">Inventory Ledger event date<input id="field-event" name="event" type="date" required data-offset="-48"></label>
+<label for="field-asof">Review date<input id="field-asof" name="asof" type="date" required data-offset="0"></label></div></form>
+<div class="calc-output"><div class="panel result-panel" id="calc-result" aria-live="polite" aria-atomic="true" hidden><p class="kicker" id="calc-label"></p><strong id="calc-value" class="result-amount"></strong><p id="calc-note"></p><div id="calc-bars" class="bars"></div></div><div class="message" id="calc-error" role="status" hidden></div><noscript><p class="notice">Enable JavaScript for live calculations. The formula and worked example are below.</p></noscript></div></section>
+<section class="method-grid"><article><p class="kicker">Calculation method</p><h2>How to read the result</h2><p>Add 60 calendar days to the ledger event date. The event date is day zero. This tool includes day 60 as due today and marks an event expired from day 61. Confirm the event date against your source report.</p><p class="sources">Policy background supplied for this tool. <a href="https://www.sellerforge.ai/blog/amazon-profitability-audit-fee-leakage">Reimbursement valuation and windows</a> · <a href="https://www.spscommerce.com/community/articles/amazon-reimbursement-policy">Filing window change</a></p></article><aside><p class="kicker">Worked example</p><p>An event dated November 10, 2026 reaches day 60 on January 9, 2027. On December 27 it has 13 calendar days left.</p></aside></section>
+<section class="section faq-section"><div><p class="kicker">Seller questions</p><h2>Common questions</h2></div><div class="faqs"><details><summary>When does the auditor show an expiration alert?</summary><p>It includes open event rows aged 46 through 60 days, after found and reimbursed units are allocated.</p></details><details><summary>Can I use a customer refund date here?</summary><p>Use the unreturned customer refund checker for a refund. Its waiting period and filing window follow different guidance.</p></details></div></section>
+<section class="panel calc-cta"><div><h2>Audit your inventory ledger</h2><p>Drop your ledger and reimbursement files to review dated losses, credits and estimated recovery in one place.</p></div><a class="button primary" href="/#auditor">Run a free audit →</a></section>
+<section class="section related"><h3>Related calculators</h3><nav aria-label="Related calculators"><a href="/calculators/fba-unreturned-customer-refund-45-day-checker">Unreturned refund checker <span aria-hidden="true">→</span></a><a href="/calculators/fba-lost-inventory-reimbursement-calculator">Lost or damaged payout <span aria-hidden="true">→</span></a></nav><p class="hint">Confirm the exact current Seller Central menu label and applicable terms before filing.</p></section></div></main><footer class="footer"><div class="container foot-row"><div><a class="brand small" href="/">FBA Ledger Audit</a><p>Not affiliated with or endorsed by Amazon.com, Inc. or any of its affiliates.</p></div><nav aria-label="Footer"><a href="/#auditor">Auditor</a><a href="/#calculators">Calculator directory</a><a href="#top">Back to top ↑</a></nav></div></footer>
+<script type="module" src="/assets/calculators.js"></script>
+</body></html>

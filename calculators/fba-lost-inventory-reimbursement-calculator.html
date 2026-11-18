@@ -1,48 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Amazon FBA Lost & Damaged Inventory Reimbursement Calculator (2026 Rules)</title>
-  <meta name="description" content="Estimate your Amazon FBA lost and warehouse-damaged reimbursement payout under Amazon's manufacturing-cost policy and compare flat-fee vs. 25% agency cuts." />
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; max-width: 760px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; }
-    label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-top: 12px; }
-    input, button { width: 100%; padding: 12px; margin-top: 6px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 15px; box-sizing: border-box; }
-    button { background: #38bdf8; color: #0f172a; font-weight: 700; border: none; cursor: pointer; margin-top: 18px; }
-    .out { margin-top: 18px; padding: 16px; background: #0f172a; border-radius: 8px; border-left: 4px solid #22c55e; }
-    a { color: #38bdf8; }
-  </style>
-</head>
-<body>
-  <p><a href="/">&larr; Back to Full FBA Inventory Ledger CSV Auditor</a></p>
-  <div class="card">
-    <h1>Amazon FBA Lost &amp; Damaged Reimbursement Calculator</h1>
-    <p>Amazon reimburses fulfillment-center lost and damaged units using sourced manufacturing cost rather than retail price. Calculate your estimated recovery and compare keeping 100% of your payout vs. paying a 25% recovery agency cut.</p>
-    <label for="units">Unreconciled Lost or Warehouse-Damaged Units (Last 60 Days)</label>
-    <input type="number" id="units" value="25" min="1" />
-    <label for="mfgCost">Unit Manufacturing / Landed Cost ($ USD)</label>
-    <input type="number" id="mfgCost" value="12.50" step="0.25" min="0.50" />
-    <button onclick="calcReimb()">Calculate Net FBA Recovery</button>
-    <div id="out" class="out" style="display:none;"></div>
-  </div>
-  <script>
-    function calcReimb() {
-      const u = parseFloat(document.getElementById("units").value) || 0;
-      const c = parseFloat(document.getElementById("mfgCost").value) || 0;
-      const gross = u * c;
-      const agencyCut = gross * 0.25;
-      const diyNet = Math.max(0, gross - 29);
-      const box = document.getElementById("out");
-      box.style.display = "block";
-      box.innerHTML = `
-        <strong>Estimated Gross Amazon Reimbursement: $${gross.toFixed(2)}</strong><br>
-        &bull; If using a 25% contingency agency: You lose <strong>$${agencyCut.toFixed(2)}</strong> in fees (Net: $${(gross - agencyCut).toFixed(2)})<br>
-        &bull; If using our $29 flat-fee Ledger Auditor: You keep <strong>$${diyNet.toFixed(2)}</strong><br><br>
-        <a href="/">Upload your Amazon Inventory Ledger CSV to extract exact FNSKUs &amp; Reference IDs &rarr;</a>
-      `;
-    }
-  </script>
-</body>
-</html>
+<!doctype html>
+<html lang="en" id="top"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FBA Lost or Damaged Inventory Payout Calculator | FBA Ledger Audit</title>
+<meta name="description" content="Estimate the manufacturing-cost value of lost or warehouse-damaged FBA units after found units and reimbursements.">
+<link rel="canonical" href="https://fba-ledger-audit.pages.dev/calculators/fba-lost-inventory-reimbursement-calculator"><meta name="theme-color" content="#101921">
+<link rel="stylesheet" href="/assets/styles.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Should I enter retail price?", "acceptedAnswer": {"@type": "Answer", "text": "Use the sourced manufacturing cost for fulfillment-center lost or damaged units. Enter a cost supported by your records."}}, {"@type": "Question", "name": "How do I check multiple event dates?", "acceptedAnswer": {"@type": "Answer", "text": "Use the CSV auditor for event-level deadlines, found adjustments and an optional Reimbursements report. This single-SKU worksheet has no date allocation."}}]}</script>
+<script type="module" src="/assets/layout.js"></script></head><body>
+<a class="skip" href="#main">Skip to content</a><header class="mast"><div class="container mast-inner"><a class="brand" href="/" aria-label="FBA Ledger Audit, home"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>FBA Ledger Audit</a><nav aria-label="Main navigation"><div data-tools-menu><a href="/#calculators">Calculators</a></div><a class="nav-cta" href="/#auditor">Open auditor <span aria-hidden="true">↗</span></a></nav></div></header><main id="main"><section class="calc-hero"><div class="container"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Auditor</a><span aria-hidden="true">/</span><a href="/#calculators">Calculators</a></nav><p class="kicker">Inventory reconciliation</p><h1>FBA Lost or Damaged Inventory Payout Calculator</h1><p class="lead">Start with reported losses, then deduct units found or reimbursed. Enter the sourced manufacturing cost for the SKU.</p></div></section><div class="trust"><div class="container trust-inner"><span>Runs in your browser</span><span>No Seller Central API keys</span><span>Free calculator</span></div></div>
+<div class="container"><section class="section calculator-grid"><form class="panel calc-form" data-calculator="payout"><div class="section-head"><h2>Your inputs</h2><button class="text-button" type="reset">Reset example</button></div><p class="hint">Starting figures are illustrative. Replace them with your own records and any applicable rates or thresholds.</p><div class="fields"><label for="field-lost">Lost units<input id="field-lost" name="lost" type="number" required value="9" min="0" step="1" max="100000000"></label>
+<label for="field-damaged">Warehouse-damaged units<input id="field-damaged" name="damaged" type="number" required value="4" min="0" step="1" max="100000000"></label>
+<label for="field-found">Units found<input id="field-found" name="found" type="number" required value="1" min="0" step="1" max="100000000"></label>
+<label for="field-paid">Units already reimbursed<input id="field-paid" name="paid" type="number" required value="3" min="0" step="1" max="100000000"></label>
+<label for="field-cost">Sourced manufacturing cost per unit ($)<input id="field-cost" name="cost" type="number" required value="15" min="0" step=".01" max="100000000"></label></div></form>
+<div class="calc-output"><div class="panel result-panel" id="calc-result" aria-live="polite" aria-atomic="true" hidden><p class="kicker" id="calc-label"></p><strong id="calc-value" class="result-amount"></strong><p id="calc-note"></p><div id="calc-bars" class="bars"></div></div><div class="message" id="calc-error" role="status" hidden></div><noscript><p class="notice">Enable JavaScript for live calculations. The formula and worked example are below.</p></noscript></div></section>
+<section class="method-grid"><article><p class="kicker">Calculation method</p><h2>How to read the result</h2><p>Add lost and warehouse-damaged units, deduct found and reimbursed units, and floor the open quantity at zero. Multiply by sourced manufacturing cost. Keep all four counts on the same SKU and period.</p><p class="sources">Policy background supplied for this tool. <a href="https://www.sellerforge.ai/blog/amazon-profitability-audit-fee-leakage">Reimbursement valuation and windows</a></p></article><aside><p class="kicker">Worked example</p><p>Nine lost plus four damaged units, less one found and three reimbursed, leaves nine open units. At an illustrative $15 per unit, the estimate is $135.</p></aside></section>
+<section class="section faq-section"><div><p class="kicker">Seller questions</p><h2>Common questions</h2></div><div class="faqs"><details><summary>Should I enter retail price?</summary><p>Use the sourced manufacturing cost for fulfillment-center lost or damaged units. Enter a cost supported by your records.</p></details><details><summary>How do I check multiple event dates?</summary><p>Use the CSV auditor for event-level deadlines, found adjustments and an optional Reimbursements report. This single-SKU worksheet has no date allocation.</p></details></div></section>
+<section class="panel calc-cta"><div><h2>Audit your inventory ledger</h2><p>Drop your ledger and reimbursement files to review dated losses, credits and estimated recovery in one place.</p></div><a class="button primary" href="/#auditor">Run a free audit →</a></section>
+<section class="section related"><h3>Related calculators</h3><nav aria-label="Related calculators"><a href="/calculators/fba-manufacturing-cost-reimbursement-estimator">Manufacturing cost estimator <span aria-hidden="true">→</span></a><a href="/calculators/fba-60-day-deadline-checker">60-day deadline checker <span aria-hidden="true">→</span></a></nav><p class="hint">Confirm the exact current Seller Central menu label and applicable terms before filing.</p></section></div></main><footer class="footer"><div class="container foot-row"><div><a class="brand small" href="/">FBA Ledger Audit</a><p>Not affiliated with or endorsed by Amazon.com, Inc. or any of its affiliates.</p></div><nav aria-label="Footer"><a href="/#auditor">Auditor</a><a href="/#calculators">Calculator directory</a><a href="#top">Back to top ↑</a></nav></div></footer>
+<script type="module" src="/assets/calculators.js"></script>
+</body></html>

@@ -1,61 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Amazon FBA Inbound Shipment Shortage & Reconciliation Calculator</title>
-  <meta name="description" content="Calculate missing units and reimbursement value for an Amazon FBA inbound shipment discrepancy and check your 9-month reconciliation window." />
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; max-width: 760px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; }
-    label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-top: 12px; }
-    input, button { width: 100%; padding: 12px; margin-top: 6px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 15px; box-sizing: border-box; }
-    button { background: #38bdf8; color: #0f172a; font-weight: 700; border: none; cursor: pointer; margin-top: 18px; }
-    .out { margin-top: 18px; padding: 16px; background: #0f172a; border-radius: 8px; border-left: 4px solid #22c55e; }
-    a { color: #38bdf8; }
-  </style>
-</head>
-<body>
-  <p><a href="/">&larr; Back to Full FBA Inventory Ledger CSV Auditor</a></p>
-  <div class="card">
-    <h1>Amazon FBA Inbound Shipment Discrepancy Calculator</h1>
-    <p>When Amazon receives fewer units at the fulfillment center than your carrier delivered, you have up to <strong>9 months</strong> from the shipment delivery date to open an inbound reconciliation claim.</p>
-    <label>Units Shipped (Per Carrier Bill of Lading / Tracking)</label>
-    <input type="number" id="shipped" value="240" min="1" />
-    <label>Units Received &amp; Checked-In by Amazon</label>
-    <input type="number" id="received" value="222" min="0" />
-    <label>Unit Landed / Manufacturing Cost ($ USD)</label>
-    <input type="number" id="cost" value="11.00" step="0.25" min="0.50" />
-    <label>Shipment Delivery Date</label>
-    <input type="date" id="delivDate" />
-    <button onclick="calcInbound()">Calculate Inbound Shortage Claim</button>
-    <div id="out" class="out" style="display:none;"></div>
-  </div>
-  <script>
-    function calcInbound() {
-      const s = parseFloat(document.getElementById("shipped").value) || 0;
-      const r = parseFloat(document.getElementById("received").value) || 0;
-      const c = parseFloat(document.getElementById("cost").value) || 0;
-      const missing = Math.max(0, s - r);
-      const val = missing * c;
-      const rawDate = document.getElementById("delivDate").value;
-      let deadlineMsg = "Enter delivery date above to check exact 9-month cutoff.";
-      if (rawDate) {
-        const d = new Date(rawDate + "T00:00:00");
-        d.setMonth(d.getMonth() + 9);
-        const daysLeft = Math.ceil((d.getTime() - Date.now()) / 86400000);
-        deadlineMsg = daysLeft > 0
-          ? `<strong>${daysLeft} days left</strong> to submit reconciliation (Cutoff: ${d.toDateString()}).`
-          : `<strong>Window expired</strong> on ${d.toDateString()}.`;
-      }
-      const box = document.getElementById("out");
-      box.style.display = "block";
-      box.innerHTML = `
-        <strong>Shortage Detected: ${missing} Missing Units ($${val.toFixed(2)} Est. Claim)</strong><br>
-        &bull; ${deadlineMsg}<br><br>
-        <a href="/">Audit your full FBA Inventory Ledger CSV for post-checkin warehouse losses &rarr;</a>
-      `;
-    }
-  </script>
-</body>
-</html>
+<!doctype html>
+<html lang="en" id="top"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FBA Inbound Shipment Shortage Calculator | FBA Ledger Audit</title>
+<meta name="description" content="Compare delivered and checked-in units and check the general nine-month inbound discrepancy window from the delivery date.">
+<link rel="canonical" href="https://fba-ledger-audit.pages.dev/calculators/fba-inbound-shipment-discrepancy-calculator"><meta name="theme-color" content="#101921">
+<link rel="stylesheet" href="/assets/styles.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is the nine-month date confirmed for my shipment?", "acceptedAnswer": {"@type": "Answer", "text": "Nine months from delivery is general guidance. Verify current eligibility, the exact menu label and the date shown for your shipment in Seller Central before submitting."}}, {"@type": "Question", "name": "How does this differ from an FC ledger loss?", "acceptedAnswer": {"@type": "Answer", "text": "An inbound shortage compares delivery and receiving counts. A fulfillment-center ledger adjustment uses its own event date and the separate 60-day checker."}}]}</script>
+<script type="module" src="/assets/layout.js"></script></head><body>
+<a class="skip" href="#main">Skip to content</a><header class="mast"><div class="container mast-inner"><a class="brand" href="/" aria-label="FBA Ledger Audit, home"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>FBA Ledger Audit</a><nav aria-label="Main navigation"><div data-tools-menu><a href="/#calculators">Calculators</a></div><a class="nav-cta" href="/#auditor">Open auditor <span aria-hidden="true">↗</span></a></nav></div></header><main id="main"><section class="calc-hero"><div class="container"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Auditor</a><span aria-hidden="true">/</span><a href="/#calculators">Calculators</a></nav><p class="kicker">Filing windows</p><h1>FBA Inbound Shipment Shortage Calculator</h1><p class="lead">Compare quantities for one delivered shipment. Use its delivery date for the general inbound filing guidance.</p></div></section><div class="trust"><div class="container trust-inner"><span>Runs in your browser</span><span>No Seller Central API keys</span><span>Free calculator</span></div></div>
+<div class="container"><section class="section calculator-grid"><form class="panel calc-form" data-calculator="inbound"><div class="section-head"><h2>Your inputs</h2><button class="text-button" type="reset">Reset example</button></div><p class="hint">Starting figures are illustrative. Replace them with your own records and any applicable rates or thresholds.</p><div class="fields"><label for="field-shipped">Units delivered according to your records<input id="field-shipped" name="shipped" type="number" required value="240" min="0" step="1" max="100000000"></label>
+<label for="field-received">Units checked in<input id="field-received" name="received" type="number" required value="222" min="0" step="1" max="100000000"></label>
+<label for="field-cost">Your value per missing unit ($)<input id="field-cost" name="cost" type="number" required value="10" min="0" step=".01" max="100000000"></label>
+<label for="field-delivery">Shipment delivery date<input id="field-delivery" name="delivery" type="date" required data-offset="-42"></label>
+<label for="field-asof">Review date<input id="field-asof" name="asof" type="date" required data-offset="0"></label></div></form>
+<div class="calc-output"><div class="panel result-panel" id="calc-result" aria-live="polite" aria-atomic="true" hidden><p class="kicker" id="calc-label"></p><strong id="calc-value" class="result-amount"></strong><p id="calc-note"></p><div id="calc-bars" class="bars"></div></div><div class="message" id="calc-error" role="status" hidden></div><noscript><p class="notice">Enable JavaScript for live calculations. The formula and worked example are below.</p></noscript></div></section>
+<section class="method-grid"><article><p class="kicker">Calculation method</p><h2>How to read the result</h2><p>Subtract checked-in units from delivered units. Price a positive shortfall at your own assumed unit value. The date checker adds nine calendar months to delivery and uses the last day of the target month if needed.</p></article><aside><p class="kicker">Worked example</p><p>A delivery of 240 units with 222 checked in leaves an 18-unit gap. At a seller-entered $10, the inventory exposure is $180. Eligibility still depends on the shipment record.</p></aside></section>
+<section class="section faq-section"><div><p class="kicker">Seller questions</p><h2>Common questions</h2></div><div class="faqs"><details><summary>Is the nine-month date confirmed for my shipment?</summary><p>Nine months from delivery is general guidance. Verify current eligibility, the exact menu label and the date shown for your shipment in Seller Central before submitting.</p></details><details><summary>How does this differ from an FC ledger loss?</summary><p>An inbound shortage compares delivery and receiving counts. A fulfillment-center ledger adjustment uses its own event date and the separate 60-day checker.</p></details></div></section>
+<section class="panel calc-cta"><div><h2>Audit your inventory ledger</h2><p>Drop your ledger and reimbursement files to review dated losses, credits and estimated recovery in one place.</p></div><a class="button primary" href="/#auditor">Run a free audit →</a></section>
+<section class="section related"><h3>Related calculators</h3><nav aria-label="Related calculators"><a href="/calculators/fba-60-day-deadline-checker">60-day deadline checker <span aria-hidden="true">→</span></a><a href="/calculators/fba-removal-order-shortage-calculator">Removal order shortage <span aria-hidden="true">→</span></a></nav><p class="hint">Confirm the exact current Seller Central menu label and applicable terms before filing.</p></section></div></main><footer class="footer"><div class="container foot-row"><div><a class="brand small" href="/">FBA Ledger Audit</a><p>Not affiliated with or endorsed by Amazon.com, Inc. or any of its affiliates.</p></div><nav aria-label="Footer"><a href="/#auditor">Auditor</a><a href="/#calculators">Calculator directory</a><a href="#top">Back to top ↑</a></nav></div></footer>
+<script type="module" src="/assets/calculators.js"></script>
+</body></html>

@@ -3,29 +3,70 @@ const GROUPS = [
     "Filing windows",
     [
       [
-        "60-day deadline",
+        "60-day deadline checker",
         "fba-60-day-deadline-checker"
       ],
       [
         "Inbound shipment shortage",
         "fba-inbound-shipment-discrepancy-calculator"
+      ],
+      [
+        "Unreturned refund checker",
+        "fba-unreturned-customer-refund-45-day-checker"
       ]
     ]
   ],
   [
-    "Inventory & fees",
+    "Fees & measurements",
     [
-      [
-        "Lost or damaged payout",
-        "fba-lost-inventory-reimbursement-calculator"
-      ],
       [
         "Dimensional weight",
         "fba-dim-weight-fee-overcharge-calculator"
       ],
       [
-        "Storage surcharge",
-        "fba-aged-inventory-surcharge-calculator"
+        "Monthly storage fee",
+        "fba-monthly-cubic-foot-storage-fee-calculator"
+      ],
+      [
+        "28-day supply fee",
+        "fba-low-inventory-level-28-day-supply-fee-calculator"
+      ],
+      [
+        "Referral fee overcharge",
+        "fba-referral-fee-category-overcharge-calculator"
+      ],
+      [
+        "Return processing fee",
+        "fba-return-processing-fee-calculator"
+      ]
+    ]
+  ],
+  [
+    "Inventory reconciliation",
+    [
+      [
+        "Removal order shortage",
+        "fba-removal-order-shortage-calculator"
+      ],
+      [
+        "Stranded inventory risk",
+        "fba-stranded-inventory-risk-calculator"
+      ],
+      [
+        "Lost or damaged payout",
+        "fba-lost-inventory-reimbursement-calculator"
+      ],
+      [
+        "Manufacturing cost estimator",
+        "fba-manufacturing-cost-reimbursement-estimator"
+      ],
+      [
+        "Agency vs. flat fee",
+        "fba-recovery-agency-vs-flat-fee-calculator"
+      ],
+      [
+        "Ledger balance variance",
+        "fba-inventory-ledger-balance-variance-calculator"
       ]
     ]
   ]

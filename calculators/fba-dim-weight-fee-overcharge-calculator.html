@@ -1,59 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Amazon FBA Dimensional Weight & Size Tier Overcharge Calculator</title>
-  <meta name="description" content="Calculate Amazon FBA dimensional weight (L x W x H / 139) and check if a Cubiscan measurement error pushed your SKU into a higher fulfillment fee tier." />
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; max-width: 760px; margin: 40px auto; padding: 0 20px; line-height: 1.6; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; }
-    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-    label { display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-top: 10px; }
-    input, button { width: 100%; padding: 12px; margin-top: 6px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; font-size: 15px; box-sizing: border-box; }
-    button { background: #38bdf8; color: #0f172a; font-weight: 700; border: none; cursor: pointer; margin-top: 18px; }
-    .out { margin-top: 18px; padding: 16px; background: #0f172a; border-radius: 8px; border-left: 4px solid #38bdf8; }
-    a { color: #38bdf8; }
-  </style>
-</head>
-<body>
-  <p><a href="/">&larr; Back to Full FBA Inventory Ledger CSV Auditor</a></p>
-  <div class="card">
-    <h1>Amazon FBA Dimensional Weight &amp; Size Tier Calculator</h1>
-    <p>Check your exact FBA dimensional weight (<code>Length &times; Width &times; Height &divide; 139</code>) to spot Cubiscan dimension inflation before filing a re-measurement or fee reimbursement claim.</p>
-    <div class="row">
-      <div><label>Longest Side (in)</label><input type="number" id="l" value="14" step="0.1" /></div>
-      <div><label>Median Side (in)</label><input type="number" id="w" value="10" step="0.1" /></div>
-      <div><label>Shortest Side (in)</label><input type="number" id="h" value="4" step="0.1" /></div>
-      <div><label>Unit Weight (lbs)</label><input type="number" id="wt" value="1.5" step="0.1" /></div>
-    </div>
-    <button onclick="calcDim()">Calculate FBA Size Tier &amp; Billable Weight</button>
-    <div id="out" class="out" style="display:none;"></div>
-  </div>
-  <script>
-    function calcDim() {
-      const dims = [
-        parseFloat(document.getElementById("l").value) || 0,
-        parseFloat(document.getElementById("w").value) || 0,
-        parseFloat(document.getElementById("h").value) || 0
-      ].sort((a, b) => b - a);
-      const actualWt = parseFloat(document.getElementById("wt").value) || 0;
-      const dimWt = (dims[0] * dims[1] * dims[2]) / 139;
-      let tier = "Extra-Large / Oversize";
-      if (dims[0] <= 15 && dims[1] <= 12 && dims[2] <= 0.75 && actualWt <= 1) tier = "Small Standard-Size (Uses Unit Weight Only)";
-      else if (dims[0] <= 18 && dims[1] <= 14 && dims[2] <= 8 && Math.max(actualWt, dimWt) <= 20) tier = "Large Standard-Size";
-      else if (dims[0] <= 59 && dims[1] <= 33 && dims[2] <= 33 && Math.max(actualWt, dimWt) <= 50) tier = "Large Bulky";
-
-      const billable = tier.startsWith("Small Standard") ? actualWt : Math.max(actualWt, dimWt);
-      const box = document.getElementById("out");
-      box.style.display = "block";
-      box.innerHTML = `
-        <strong>Detected Tier: ${tier}</strong><br>
-        &bull; Dimensional Weight: <strong>${dimWt.toFixed(2)} lbs</strong> (Actual: ${actualWt.toFixed(2)} lbs)<br>
-        &bull; FBA Billable Shipping Weight: <strong>${billable.toFixed(2)} lbs</strong><br><br>
-        <a href="/">Audit your FBA Inventory Ledger CSV for lost/damaged units &rarr;</a>
-      `;
-    }
-  </script>
-</body>
-</html>
+<!doctype html>
+<html lang="en" id="top"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FBA Dimensional Weight Calculator | FBA Ledger Audit</title>
+<meta name="description" content="Calculate FBA dimensional weight with length × width × height ÷ 139 or your own divisor. Compare the result with the package weight.">
+<link rel="canonical" href="https://fba-ledger-audit.pages.dev/calculators/fba-dim-weight-fee-overcharge-calculator"><meta name="theme-color" content="#101921">
+<link rel="stylesheet" href="/assets/styles.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is 139 the right divisor for every shipment?", "acceptedAnswer": {"@type": "Answer", "text": "139 is the starting calculation requested for this worksheet. Verify the applicable divisor, tier and rounding in your own fee schedule."}}, {"@type": "Question", "name": "Can I calculate an overcharge from dimensions alone?", "acceptedAnswer": {"@type": "Answer", "text": "You also need the actual billed fee and the applicable fee for your verified measurements. This tool supplies the weight comparison for that review."}}]}</script>
+<script type="module" src="/assets/layout.js"></script></head><body>
+<a class="skip" href="#main">Skip to content</a><header class="mast"><div class="container mast-inner"><a class="brand" href="/" aria-label="FBA Ledger Audit, home"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>FBA Ledger Audit</a><nav aria-label="Main navigation"><div data-tools-menu><a href="/#calculators">Calculators</a></div><a class="nav-cta" href="/#auditor">Open auditor <span aria-hidden="true">↗</span></a></nav></div></header><main id="main"><section class="calc-hero"><div class="container"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Auditor</a><span aria-hidden="true">/</span><a href="/#calculators">Calculators</a></nav><p class="kicker">Fees &amp; measurements</p><h1>FBA Dimensional Weight Calculator</h1><p class="lead">Compare the space a packaged unit occupies with its scale weight. Use the divisor that applies to your marketplace and shipment.</p></div></section><div class="trust"><div class="container trust-inner"><span>Runs in your browser</span><span>No Seller Central API keys</span><span>Free calculator</span></div></div>
+<div class="container"><section class="section calculator-grid"><form class="panel calc-form" data-calculator="dimensional"><div class="section-head"><h2>Your inputs</h2><button class="text-button" type="reset">Reset example</button></div><p class="hint">Starting figures are illustrative. Replace them with your own records and any applicable rates or thresholds.</p><div class="fields"><label for="field-length">Packaged length (in)<input id="field-length" name="length" type="number" required value="14" min="0.01" step=".01" max="100000000"></label>
+<label for="field-width">Packaged width (in)<input id="field-width" name="width" type="number" required value="10" min="0.01" step=".01" max="100000000"></label>
+<label for="field-height">Packaged height (in)<input id="field-height" name="height" type="number" required value="4" min="0.01" step=".01" max="100000000"></label>
+<label for="field-scale">Scale weight (lb)<input id="field-scale" name="scale" type="number" required value="2" min="0" step=".01" max="100000000"></label>
+<label for="field-divisor">Applicable dimensional divisor<input id="field-divisor" name="divisor" type="number" required value="139" min="0.01" step=".01" max="100000000"></label></div></form>
+<div class="calc-output"><div class="panel result-panel" id="calc-result" aria-live="polite" aria-atomic="true" hidden><p class="kicker" id="calc-label"></p><strong id="calc-value" class="result-amount"></strong><p id="calc-note"></p><div id="calc-bars" class="bars"></div></div><div class="message" id="calc-error" role="status" hidden></div><noscript><p class="notice">Enable JavaScript for live calculations. The formula and worked example are below.</p></noscript></div></section>
+<section class="method-grid"><article><p class="kicker">Calculation method</p><h2>How to read the result</h2><p>Multiply the three packaged dimensions in inches and divide by your divisor. Compare the result in pounds with the measured scale weight. Recheck the package against the measurement record before pricing a discrepancy.</p></article><aside><p class="kicker">Worked example</p><p>A 14 × 10 × 4 inch package occupies 560 cubic inches. At an entered divisor of 139, its dimensional weight is 4.03 lb.</p></aside></section>
+<section class="section faq-section"><div><p class="kicker">Seller questions</p><h2>Common questions</h2></div><div class="faqs"><details><summary>Is 139 the right divisor for every shipment?</summary><p>139 is the starting calculation requested for this worksheet. Verify the applicable divisor, tier and rounding in your own fee schedule.</p></details><details><summary>Can I calculate an overcharge from dimensions alone?</summary><p>You also need the actual billed fee and the applicable fee for your verified measurements. This tool supplies the weight comparison for that review.</p></details></div></section>
+<section class="panel calc-cta"><div><h2>Audit your inventory ledger</h2><p>Drop your ledger and reimbursement files to review dated losses, credits and estimated recovery in one place.</p></div><a class="button primary" href="/#auditor">Run a free audit →</a></section>
+<section class="section related"><h3>Related calculators</h3><nav aria-label="Related calculators"><a href="/calculators/fba-monthly-cubic-foot-storage-fee-calculator">Monthly storage fee <span aria-hidden="true">→</span></a><a href="/calculators/fba-referral-fee-category-overcharge-calculator">Referral fee overcharge <span aria-hidden="true">→</span></a></nav><p class="hint">Confirm the exact current Seller Central menu label and applicable terms before filing.</p></section></div></main><footer class="footer"><div class="container foot-row"><div><a class="brand small" href="/">FBA Ledger Audit</a><p>Not affiliated with or endorsed by Amazon.com, Inc. or any of its affiliates.</p></div><nav aria-label="Footer"><a href="/#auditor">Auditor</a><a href="/#calculators">Calculator directory</a><a href="#top">Back to top ↑</a></nav></div></footer>
+<script type="module" src="/assets/calculators.js"></script>
+</body></html>
