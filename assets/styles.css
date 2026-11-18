@@ -137,3 +137,20 @@ td small { display: block; color: var(--muted); }
   .trust-inner { gap: 5px 14px; font-size: .75rem; }
   .menu-panel { grid-template-columns: 1fr; }
 }
+.dropzone { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 22px; background: #162b29; border: 1px dashed #719888; border-radius: 9px; }
+.dropzone > div:nth-child(2) { flex: 1 1 220px; }
+.dropzone p,.result-detail,.retention-note { font-size: .87rem; color: var(--muted); }
+.dropzone[data-over=true] { border-color: var(--accent); background: #284338; }
+.drop-mark { border: 1px solid #506e65; color: var(--accent); padding: 0 10px; font-size: 1.65rem; border-radius: 7px; }
+.file-picker { position: relative; overflow: hidden; }
+.file-picker input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.file-picker:focus-within { outline: 3px solid var(--amber); }
+.intake-options { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(180px,100%),1fr)); gap: 18px; margin-top: 18px; }
+#fileList { display: flex; flex-wrap: wrap; gap: 8px; }
+.file-chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); padding: 3px 8px; margin-bottom: 12px; border-radius: 5px; word-break: break-word; font-size: .8rem; }
+.file-chip button { border: 0; background: transparent; color: var(--accent); cursor: pointer; padding: 4px; }
+.costs { margin-top: 18px; }
+.costs summary { cursor: pointer; font-weight: 650; }
+.costs .fields { margin-top: 12px; }
+#feeComparison { margin-top: 8px; font-size: .91rem; }
+#retention { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 18px; }

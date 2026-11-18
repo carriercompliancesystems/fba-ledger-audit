@@ -1,0 +1,4 @@
+Date,FNSKU,MSKU,Title,Event Type,Reason,Quantity,Reference ID
+2026-09-19,X-MAT,MAT-01,"Mat, large",Adjustment,Warehouse-damaged,-4,REF-1
+2026-11-01,X-MAT,MAT-01,"Mat, large",Found,Found,1,REF-1
+2026-09-18,X-OLD,OLD-01,Sleeve,Adjustment,Lost,-2,REF-OLD

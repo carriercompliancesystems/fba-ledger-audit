@@ -3,214 +3,279 @@ export const CHECKOUT = Object.freeze({
   paymentLink: "https://buy.stripe.com/5kQeVc9ty6Mg8NSevtbwk02",
   priceUSD: 29
 });
-import { paymentFlow, takeSnapshot } from "./payment.js";
 
-let isUnlocked = false;
-let currentAudit = null;
-let currentFindings = [];
-const payment = paymentFlow(CHECKOUT, access => {
-  isUnlocked = access;
-  if (currentAudit) renderResults(currentAudit);
-});
-function parseCSV(text) {
-      const lines = text.replace(/\r/g, "").split("\n").filter(l => l.trim().length > 0);
-      if (lines.length < 2) return [];
-      const splitLine = (line) => {
-        const out = []; let cur = "", inQ = false;
-        for (let i = 0; i < line.length; i++) {
-          const ch = line[i];
-          if (ch === '"') { inQ = !inQ; }
-          else if (ch === ',' && !inQ) { out.push(cur.trim()); cur = ""; }
-          else { cur += ch; }
-        }
-        out.push(cur.trim());
-        return out;
-      };
-      const headers = splitLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ""));
-      return lines.slice(1).map(line => {
-        const vals = splitLine(line);
-        const obj = {};
-        headers.forEach((h, idx) => { obj[h] = vals[idx] || ""; });
-        return obj;
-      });
-    }
+export const DAY_MS = 86400000;
+const MONTHS = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+export const money = cents => new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"}).format(cents / 100);
+export const isoDay = day => new Date(day * DAY_MS).toISOString().slice(0, 10);
+export function todayDay(now = new Date()) {
+  return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / DAY_MS;
+}
+function calendarDay(year, month, day) {
+  const time = Date.UTC(year, month - 1, day);
+  const date = new Date(time);
+  if (year < 1900 || date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    throw new Error("Invalid calendar date.");
+  }
+  return time / DAY_MS;
+}
+export function parseDay(value, order = "auto") {
+  const raw = String(value).trim();
+  let m = /^(\d{4})([-/])(\d{1,2})\2(\d{1,2})(?:[ T]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/.exec(raw);
+  if (m) return calendarDay(+m[1], +m[3], +m[4]);
+  m = /^(\d{1,2})[- /]([a-z]{3,9})[- ,/]+(\d{4})$/i.exec(raw);
+  if (m) return calendarDay(+m[3], MONTHS.indexOf(m[2].slice(0,3).toLowerCase()) + 1, +m[1]);
+  m = /^([a-z]{3,9}) (\d{1,2}),? (\d{4})$/i.exec(raw);
+  if (m) return calendarDay(+m[3], MONTHS.indexOf(m[1].slice(0,3).toLowerCase()) + 1, +m[2]);
+  m = /^(\d{1,2})([-/])(\d{1,2})\2(\d{4})$/.exec(raw);
+  if (m) {
+    const a = +m[1], b = +m[3];
+    if (order === "auto" && a <= 12 && b <= 12 && a !== b) throw new Error("Ambiguous date. Select month/day or day/month in the date format control.");
+    const dayFirst = order === "dmy" || (order === "auto" && a > 12);
+    return calendarDay(+m[4], dayFirst ? b : a, dayFirst ? a : b);
+  }
+  throw new Error("Unreadable date. Use YYYY-MM-DD, a four-digit year with numeric dates, or a named month.");
+}
+export function toCents(value) {
+  const raw = String(value).trim();
+  if (!/^(?:\d+|\d*\.\d{1,2})$/.test(raw)) throw new Error("Enter a non-negative cost with up to two decimal places.");
+  const n = Math.round(Number(raw) * 100);
+  if (!Number.isSafeInteger(n)) throw new Error("Cost exceeds the supported amount.");
+  return n;
+}
 
-    function daysAgo(dateStr) {
-      if (!dateStr) return NaN;
-      const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return NaN;
-      return Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
-    }
+// Keep physical line numbers even when an Excel field contains a quoted newline.
+export function parseCSV(input) {
+  const text = input.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+  if (!text.trim()) throw new Error("The file is empty.");
+  if (/[\u0000\uFFFD]/u.test(text)) throw new Error("Save the report as a UTF-8 CSV and try again.");
+  const rows = [];
+  let fields = [], field = "", quoted = false, closed = false, line = 1, start = 1;
+  function endField() { fields.push(field.trim()); field = ""; closed = false; }
+  function endRow() {
+    endField();
+    if (fields.some(v => v !== "")) rows.push({ line:start, fields });
+    fields = [];
+  }
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } else { quoted = false; closed = true; }
+      } else { field += ch; if (ch === "\n") line++; }
+    } else if (ch === ",") {
+      endField();
+    } else if (ch === "\n") {
+      endRow(); line++; start = line;
+    } else if (closed) {
+      if (ch !== " " && ch !== "\t") throw new Error("Unexpected text after a closing quote on line " + line + ".");
+    } else if (ch === '"') {
+      if (field.trim()) throw new Error("Unexpected quote on line " + line + ".");
+      field = ""; quoted = true;
+    } else { field += ch; }
+  }
+  if (quoted) throw new Error("Unclosed quoted field beginning on line " + start + ".");
+  endRow();
+  if (rows.length < 2) throw new Error("The CSV needs a header and at least one data row.");
+  return rows;
+}
 
-    function auditData(ledgerRows, reimbRows, unitCost) {
-      const reimbBySku = {};
-      reimbRows.forEach(r => {
-        const sku = r.fnsku || r.msku || r.sku || "";
-        const qty = Math.abs(parseFloat(r.quantityreimbursedinventory || r.quantityreimbursedtotal || r.quantity || 0)) || 0;
-        if (sku) reimbBySku[sku] = (reimbBySku[sku] || 0) + qty;
-      });
-
-      const skuMap = {};
-      let expiredUnits = 0;
-
-      ledgerRows.forEach(r => {
-        const sku = r.fnsku || r.msku || r.asin || "UNKNOWN-SKU";
-        const title = r.title || r.productname || "FBA Item";
-        const dateVal = r.date || r.snapshotdate || "";
-        const age = daysAgo(dateVal);
-        if (!Number.isFinite(age) || age < 0) return;
-
-        // Handles both Summary View columns and Detailed View Event Type rows
-        let lost = Math.abs(parseFloat(r.lost || 0)) || 0;
-        let damaged = Math.abs(parseFloat(r.damaged || r.warehousedamaged || 0)) || 0;
-        let found = Math.abs(parseFloat(r.found || 0)) || 0;
-
-        const eventType = (r.eventtype || "").toLowerCase();
-        const reason = (r.reason || "").toLowerCase();
-        const qty = parseFloat(r.quantity || 0) || 0;
-
-        if (eventType.includes("adjust") || eventType.includes("lost") || eventType.includes("damage")) {
-          if (qty < 0 && (reason.includes("lost") || reason.includes("misplaced") || eventType.includes("lost"))) {
-            lost += Math.abs(qty);
-          } else if (qty < 0 && (reason.includes("damage") || eventType.includes("damage"))) {
-            damaged += Math.abs(qty);
-          } else if (qty > 0 && (reason.includes("found") || eventType.includes("found"))) {
-            found += qty;
+const SUMMARY = ["date","lost","damaged","found"];
+const DETAIL = ["date","eventtype","reason","quantity","referenceid"];
+const REIMB = ["quantityreimbursedtotal","quantityreimbursedinventory","quantity"];
+const norm = key => key.toLowerCase().replace(/[^a-z0-9]/g,"");
+function units(value, label, allowBlank = false) {
+  if (allowBlank && value === "") return 0;
+  if (!/^[+-]?\d+(?:\.0+)?$/.test(value) || !Number.isSafeInteger(Number(value))) throw new Error(label + " must be a whole number.");
+  return Number(value);
+}
+export function parseReport(input, name, order = "auto", asOf = todayDay()) {
+  try {
+    const [header,...data] = parseCSV(input);
+    const keys = header.fields.map(norm);
+    if (keys.some(k => !k) || new Set(keys).size !== keys.length) throw new Error("Empty or duplicate column names. Check the header row.");
+    if (!["fnsku","msku","sku"].some(k => keys.includes(k))) throw new Error("Missing FNSKU, MSKU or SKU identifier column. Choose a Ledger or Reimbursements CSV.");
+    let type;
+    if (["eventtype","reason"].some(k => keys.includes(k)) || (keys.includes("referenceid") && keys.includes("date") && !REIMB.slice(0,2).some(k=>keys.includes(k)) && !SUMMARY.slice(1).some(k=>keys.includes(k)) && !keys.includes("quantity"))) type = "Detailed Ledger";
+    else if (["lost","damaged","found","startingwarehousebalance","endingwarehousebalance"].some(k => keys.includes(k))) type = "Summary Ledger";
+    else if (REIMB.some(k => keys.includes(k))) type = "Reimbursements";
+    else throw new Error("Unrecognized report. Expected Ledger lost/damaged/found columns, detailed event columns, or a reimbursed quantity.");
+    const missing = (type === "Summary Ledger" ? SUMMARY : type === "Detailed Ledger" ? DETAIL : []).filter(k => !keys.includes(k));
+    if (missing.length) throw new Error("Missing required columns for " + type + " — " + missing.join(", ") + ".");
+    const rows = [];
+    for (const record of data) {
+      try {
+        if (record.fields.length !== keys.length) throw new Error("Expected " + keys.length + " columns and found " + record.fields.length + ". Check delimiters and quotes.");
+        const r = Object.fromEntries(keys.map((key,index) => [key,record.fields[index]]));
+        const row = { fnsku:r.fnsku || "", alias:r.msku || r.sku || "", title:r.title || "", ref:r.referenceid || "", day:null, lost:0, damaged:0, found:0, paid:0, line:record.line };
+        if (!row.fnsku && !row.alias) throw new Error("Missing item identifier.");
+        if (type === "Reimbursements") {
+          const col = REIMB.find(k => r[k] !== undefined && r[k] !== "");
+          if (!col) throw new Error("Missing reimbursed quantity.");
+          row.paid = units(r[col], "Reimbursed quantity");
+          if (row.paid < 0) throw new Error("Negative reimbursement adjustment. Resolve reversals before using this report.");
+        } else {
+          row.day = parseDay(r.date, order);
+          if (row.day > asOf) throw new Error("Event date is in the future.");
+          if (type === "Summary Ledger") {
+            row.lost = Math.abs(units(r.lost,"Lost",true));
+            row.damaged = Math.abs(units(r.damaged,"Damaged",true));
+            row.found = units(r.found,"Found",true);
+            if (row.found < 0) throw new Error("Negative Found adjustment. Review the detailed event before using the summary.");
+          } else {
+            const qty = units(r.quantity,"Quantity");
+            const description = (r.eventtype + " " + r.reason).toLowerCase().replace(/[_-]/g," ");
+            if (qty < 0 && /\b(lost|misplaced)\b/.test(description)) row.lost = -qty;
+            else if (qty < 0 && /damag/.test(description) && /warehouse|fulfil{1,2}ment cent(?:er|re)/.test(description)) row.damaged = -qty;
+            else if (qty > 0 && /\bfound\b/.test(description)) row.found = qty;
           }
         }
-
-        const grossLoss = lost + damaged;
-        if (grossLoss === 0 && found === 0) return;
-
-        if (age > 60) {
-          expiredUnits += Math.max(0, grossLoss - found);
-          return;
-        }
-
-        if (!skuMap[sku]) {
-          skuMap[sku] = { sku, title, date: dateVal || "Recent (<60d)", lost: 0, damaged: 0, found: 0, refIds: new Set() };
-        }
-        skuMap[sku].lost += lost;
-        skuMap[sku].damaged += damaged;
-        skuMap[sku].found += found;
-        if (r.referenceid) skuMap[sku].refIds.add(r.referenceid);
-      });
-
-      const results = [];
-      Object.values(skuMap).forEach(item => {
-        const alreadyReimb = reimbBySku[item.sku] || 0;
-        const gross = item.lost + item.damaged;
-        const recovered = item.found + alreadyReimb;
-        const net = Math.max(0, gross - recovered);
-        if (net > 0) {
-          results.push({
-            sku: item.sku,
-            title: item.title,
-            date: item.date,
-            gross,
-            recovered,
-            net,
-            value: +(net * unitCost).toFixed(2),
-            refs: Array.from(item.refIds).join("; ") || "See Inventory Ledger"
-          });
-        }
-      });
-
-      results.sort((a, b) => b.value - a.value);
-      return { results, expiredUnits };
+        rows.push(row);
+      } catch (err) { throw new Error("Line " + record.line + " — " + err.message); }
     }
+    return {name,type,rows,signature:input.replace(/^\uFEFF/, "").replace(/\r\n?/g,"\n").trimEnd()};
+  } catch (err) { throw new Error(name + " — " + err.message); }
+}
 
-    function renderResults(audit) {
-      currentAudit = audit;
-      currentFindings = audit.results;
-      const totalUnits = currentFindings.reduce((s, r) => s + r.net, 0);
-      const totalDollars = currentFindings.reduce((s, r) => s + r.value, 0);
-
-      document.getElementById("statDollars").textContent = "$" + totalDollars.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      document.getElementById("statUnits").textContent = totalUnits;
-      document.getElementById("statSkus").textContent = currentFindings.length;
-      document.getElementById("statExpired").textContent = audit.expiredUnits;
-      document.getElementById("lockedCount").textContent = currentFindings.length;
-
-      if (isUnlocked) {
-        document.getElementById("paywallBox").classList.add("hidden");
-        document.getElementById("unlockedBanner").classList.remove("hidden");
+function collectGroups(reports) {
+  const aliases = new Map(), groups = new Map(), notes = [];
+  for (const {rows} of reports) for (const row of rows) {
+    if (!row.fnsku || !row.alias) continue;
+    if (!aliases.has(row.alias)) aliases.set(row.alias,new Set());
+    aliases.get(row.alias).add(row.fnsku);
+  }
+  const identities = new Set();
+  let hasLedger = false, hasReimbursements = false;
+  for (const report of reports) {
+    const signature = report.signature;
+    if (identities.has(signature)) { notes.push(report.name + " matched an already selected report and was counted once."); continue; }
+    identities.add(signature);
+    const isPaid = report.type === "Reimbursements";
+    if (isPaid) hasReimbursements = true; else hasLedger = true;
+    const cover = new Map();
+    for (const row of report.rows) {
+      const matches = aliases.get(row.alias);
+      if (!row.fnsku && matches?.size > 1) throw new Error(report.name + ", line " + row.line + " — " + row.alias + " maps to several FNSKUs. Use FNSKU-level data.");
+      const fnsku = row.fnsku || (matches ? [...matches][0] : "");
+      const id = fnsku || row.alias, key = (fnsku ? "F:" : "M:") + id;
+      if (!groups.has(key)) groups.set(key,{key,id,kind:fnsku?"FNSKU":"Seller SKU",title:"",losses:[],credits:[],ranges:[],paymentFile:null});
+      const g = groups.get(key);
+      if (row.title && !g.title) g.title = row.title;
+      if (isPaid) {
+        if (g.paymentFile && g.paymentFile !== report) throw new Error("Overlapping reimbursement files for " + id + ". Use one combined reimbursement export for this SKU.");
+        g.paymentFile = report;
+      } else {
+        const range = cover.get(key) || [row.day,row.day];
+        range[0] = Math.min(range[0],row.day); range[1] = Math.max(range[1],row.day); cover.set(key,range);
       }
-
-      const tbody = document.getElementById("rowsBody");
-      tbody.innerHTML = "";
-      currentFindings.forEach((row, idx) => {
-        const tr = document.createElement("tr");
-        if (!isUnlocked && idx >= 2) return;
-        for (const value of [row.sku, row.date, row.gross, row.recovered, row.net, "$" + row.value.toFixed(2)]) {
-          const cell = document.createElement("td");
-          cell.textContent = value;
-          tr.append(cell);
-        }
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById("resultsBox").classList.remove("hidden");
+      if (row.lost || row.damaged) g.losses.push({day:row.day,ref:row.ref,lost:row.lost,damaged:row.damaged,source:report.name,line:row.line,reportType:report.type});
+      if (row.found || row.paid) g.credits.push({day:row.day,ref:row.ref,found:row.found,paid:row.paid});
     }
+    for (const [key,[first,last]] of cover) {
+      const g = groups.get(key);
+      if (g.ranges.some(([a,b]) => first <= b && a <= last)) throw new Error("Overlapping ledger date ranges for " + g.id + " in " + report.name + ". Use one view for that SKU and period, or non-overlapping exports.");
+      g.ranges.push([first,last]);
+    }
+  }
+  if (!hasLedger) throw new Error("Add an Inventory Ledger CSV. A Reimbursements report by itself cannot identify losses.");
+  return {groups,notes,hasReimbursements};
+}
+function allocate(group, asOf, conservative) {
+  const losses = group.losses.map(l=>({...l,open:l.lost+l.damaged,found:0,paid:0,pooled:false}));
+  const refs = new Map();
+  for (const loss of losses) if (loss.ref) { if (!refs.has(loss.ref)) refs.set(loss.ref,[]); refs.get(loss.ref).push(loss); }
+  function rank(loss) {
+    const age = asOf - loss.day;
+    if (conservative) return age > 60 ? 2 : age >= 46 ? 0 : 1;
+    return age > 60 ? 0 : age >= 46 ? 2 : 1;
+  }
+  const compare = (a,b)=>rank(a)-rank(b) || a.day-b.day || a.line-b.line;
+  losses.sort(compare);
+  for (const list of refs.values()) list.sort(compare);
+  const credits = [...group.credits].sort((a,b)=>(a.day??Infinity)-(b.day??Infinity));
+  const pooled = [];
+  function apply(credit, left, candidates, isPooled) {
+    for (const l of candidates) {
+      if (!left) break;
+      if (!l.open || (credit.day !== null && l.day > credit.day)) continue;
+      const take=Math.min(left,l.open);
+      l.open-=take; left-=take; l[credit.paid ? "paid" : "found"]+=take;
+      if (isPooled) l.pooled=true;
+    }
+    return left;
+  }
+  for (const credit of credits) {
+    const exact = credit.ref && refs.get(credit.ref);
+    const left = exact ? apply(credit,credit.found+credit.paid,exact,false) : credit.found+credit.paid;
+    if (left) pooled.push({credit,left});
+  }
+  for (const {credit,left} of pooled) apply(credit,left,losses,true);
+  return losses;
+}
+export function reconcile(reports, asOf = todayDay()) {
+  const {groups,notes,hasReimbursements} = collectGroups(reports);
+  const events = [], upperUrgent = [];
+  let expired = 0, found = 0, paid = 0, gross = 0;
+  for (const g of groups.values()) {
+    const parts = allocate(g,asOf,true);
+    for (const row of parts) {
+      if (asOf-row.day > 60) {expired += row.open; continue;}
+      gross += row.lost+row.damaged; found += row.found; paid += row.paid;
+      if (row.open) events.push({...row,key:g.key,id:g.id,kind:g.kind,title:g.title,deadline:row.day+60});
+    }
+    const max = allocate(g,asOf,false).filter(r=>asOf-r.day>=46 && asOf-r.day<=60).reduce((s,r)=>s+r.open,0);
+    if (max) upperUrgent.push({key:g.key,units:max});
+  }
+  return {asOf,events,upperUrgent,expired,gross,found,paid,notes,hasReimbursements};
+}
+export function priceAudit(audit, defaultCents = 1500, overrides = {}, defaultConfirmed = false) {
+  const cost = key => Object.hasOwn(overrides,key) ? overrides[key] : defaultCents;
+  const rows = audit.events.map(r=>({...r,unitCost:cost(r.key),costSource:Object.hasOwn(overrides,r.key)?"SKU cost":defaultConfirmed?"Entered default":"Illustrative default",value:r.open*cost(r.key)}))
+    .sort((a,b)=>a.deadline-b.deadline || b.value-a.value || a.id.localeCompare(b.id) || a.line-b.line);
+  const total = rows.reduce((sum,r)=>sum+r.value,0);
+  const urgent = rows.filter(r=>r.deadline-audit.asOf<=14).reduce((sum,r)=>sum+r.value,0);
+  const maxUrgent = audit.upperUrgent.reduce((s,r)=>s+r.units*cost(r.key),0);
+  if (![total,urgent,maxUrgent].every(Number.isSafeInteger)) throw new Error("Estimated amounts exceed the supported precision. Check quantities and costs.");
+  const fee = Math.round(total/4);
+  return {rows,total,urgent,maxUrgent,fee,difference:fee-CHECKOUT.priceUSD*100,units:rows.reduce((s,r)=>s+r.open,0)};
+}
 
-    document.getElementById("runBtn").addEventListener("click", async () => {
-      const f1 = document.getElementById("ledgerFile").files[0];
-      if (!f1) { alert("Please select your Inventory Ledger CSV file first, or click Load Sample Ledger CSV."); return; }
-      const f2 = document.getElementById("reimbFile").files[0];
-      const cost = parseFloat(document.getElementById("defaultCost").value) || 15;
-      const t1 = await f1.text();
-      const t2 = f2 ? await f2.text() : "";
-      renderResults(auditData(parseCSV(t1), parseCSV(t2), cost));
-    });
-
-    document.getElementById("sampleBtn").addEventListener("click", () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const sampleCSV = [
-        "Date,FNSKU,MSKU,Title,Disposition,Starting Warehouse Balance,Receipts,Customer Shipments,Customer Returns,Found,Lost,Damaged,Ending Warehouse Balance",
-        `${today},X0039ABC12,SKU-PRO-01,Stainless Insulated Tumbler 32oz,SELLABLE,400,200,-180,5,1,9,4,421`,
-        `${today},X0039DEF34,SKU-PRO-02,Silicone Baking Mat 2-Pack,SELLABLE,250,0,-90,2,0,6,2,154`,
-        `${today},X0039GHI56,SKU-PRO-03,Heavy Duty Garage Hook Set,SELLABLE,120,100,-80,0,0,5,1,134`,
-        `${today},X0039JKL78,SKU-PRO-04,Magnetic Cable Organizer 6pk,SELLABLE,500,0,-210,4,2,8,0,288`
-      ].join("\n");
-      const cost = parseFloat(document.getElementById("defaultCost").value) || 15;
-      renderResults(auditData(parseCSV(sampleCSV), [], cost));
-    });
-
-    document.getElementById("checkoutBtn").addEventListener("click", () => {
-      if (currentAudit) payment.checkout({ legacy: currentAudit });
-    });
-
-    document.getElementById("downloadCsvBtn").addEventListener("click", () => {
-      if (!payment.unlocked) return;
-      const header = "FNSKU,Title,Date,Gross_Lost_Damaged,Found_Or_Reimbursed,Net_Claimable_Units,Est_Recovery_USD,Reference_IDs\n";
-      const body = currentFindings.map(r => `"${r.sku}","${r.title.replace(/"/g, '""')}","${r.date}",${r.gross},${r.recovered},${r.net},${r.value},"${r.refs}"`).join("\n");
-      const blob = new Blob([header + body], { type: "text/csv" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "Claimable_Audit_Packet.csv";
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    });
-
-    document.getElementById("downloadCasesBtn").addEventListener("click", () => {
-      if (!payment.unlocked) return;
-      const text = currentFindings.map((r, i) =>
-        `=== CASE #${i + 1}: FNSKU ${r.sku} (${r.net} Units / Est. $${r.value}) ===\n` +
-        `Subject: FBA Inventory Ledger Discrepancy Reimbursement Request - FNSKU ${r.sku}\n` +
-        `Message:\nHello Seller Support,\nPer our FBA Inventory Ledger report (Reference IDs: ${r.refs}), FNSKU ${r.sku} ("${r.title}") reflects ${r.gross} lost/warehouse-damaged units within the last 60 days, with only ${r.recovered} units found or reimbursed. Please investigate and issue reimbursement for the remaining ${r.net} unreconciled units under the applicable policy. Confirm the current Seller Central support category before submitting.\n`
-      ).join("\n\n");
-      const blob = new Blob([text], { type: "text/plain" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "Seller_Central_Case_Scripts.txt";
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    });
-  
-document.getElementById("heroSample").addEventListener("click", () => {
-  document.getElementById("sampleBtn").click();
-  document.getElementById("resultsBox").scrollIntoView({block:"start"});
-});
-const prior = takeSnapshot();
-if (prior?.legacy && Array.isArray(prior.legacy.results)) renderResults(prior.legacy);
-payment.verify();
+const SUPPORT = "Seller Central → Help → Get Support → Selling on Amazon → Fulfillment by Amazon → Investigate an issue with FBA inventory";
+const GUIDANCE = "This is general navigation guidance. Verify the exact current Seller Central menu labels and support categories, event dates, costs and prior reimbursements before submitting.";
+export function auditCSV(priced,audit) {
+  function quote(value) {
+    let s=String(value ?? "");
+    if (/^\s*[=+\-@\t\r]/.test(s)) s="'"+s;
+    return '"'+s.replaceAll('"','""')+'"';
+  }
+  const columns=["Identifier type","Identifier","Title","Ledger date","Deadline","Days left","Reference ID","Lost","Warehouse damaged","Found allocated","Reimbursed allocated","Open units","Sourced manufacturing cost USD","Cost basis","Estimated USD","Allocation","Reimbursements supplied","Report","Source file","Source line"];
+  const lines=priced.rows.map(r=>[r.kind,r.id,r.title,isoDay(r.day),isoDay(r.deadline),r.deadline-audit.asOf,r.ref,r.lost,r.damaged,r.found,r.paid,r.open,(r.unitCost/100).toFixed(2),r.costSource,(r.value/100).toFixed(2),r.pooled?"Includes SKU-level allocation":"See source row",audit.hasReimbursements?"Yes":"No — confirm payments",r.reportType,r.source,r.line]);
+  return "\uFEFF"+[columns,...lines].map(line=>line.map(quote).join(",")).join("\r\n")+"\r\n";
+}
+function plain(value) { return String(value).replace(/[\u0000-\u001f\u007f]+/g," ").trim(); }
+export function caseScripts(priced,audit) {
+  const groups=[]; let current=[], ids=new Set();
+  for (const r of priced.rows) {
+    const keys=[r.kind+":"+r.id]; if(r.ref) keys.push("reference:"+r.ref);
+    if (new Set([...ids,...keys]).size>5) { groups.push(current); current=[]; ids=new Set(); }
+    current.push(r); keys.forEach(key=>ids.add(key));
+  }
+  if(current.length) groups.push(current);
+  return groups.map((group,i)=>[
+    "CASE "+(i+1)+" | Inventory Ledger investigation",
+    "General filing path: "+SUPPORT, GUIDANCE,
+    audit.hasReimbursements?"A Reimbursements report was cross-referenced. Confirm the coverage period.":"No Reimbursements report was supplied. Check whether these units were already paid before submitting.",
+    "Subject: Please investigate fulfillment-center inventory adjustments",
+    "Hello Seller Support,",
+    "Please review the following unresolved inventory adjustments and confirm whether reimbursement is due.",
+    ...group.map(r=>[r.kind+" "+plain(r.id),r.ref?"Reference "+plain(r.ref):"Reference ID unavailable in this row",isoDay(r.day),"lost "+r.lost,"damaged "+r.damaged,"found allocated "+r.found,"reimbursed allocated "+r.paid,"remaining "+r.open,"estimated "+money(r.value)+" ("+r.costSource+", "+money(r.unitCost)+"/unit)","filing deadline to confirm "+isoDay(r.deadline),"source "+plain(r.source)+" line "+r.line].join(" | ")),
+    "I can provide the relevant ledger entries and manufacturing-cost evidence. Please advise on the next step.",
+    "Seller review: replace illustrative costs and verify SKU-level allocations against the original event. The five-identifier limit is this tool’s grouping convention.",
+    "Not affiliated with or endorsed by Amazon.com, Inc. or any of its affiliates."
+  ].join("\r\n")).join("\r\n\r\n")+"\r\n";
+}
+export function reminderICS(now = new Date()) {
+  const start=todayDay(now)+30, compact=d=>isoDay(d).replaceAll("-","");
+  const stamp=now.toISOString().replaceAll("-","").replaceAll(":","").replace(/\.\d{3}/,"");
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//FBA Ledger Audit//Audit Reminder//EN","CALSCALE:GREGORIAN","BEGIN:VEVENT","UID:"+crypto.randomUUID()+"@fba-ledger-audit.pages.dev","DTSTAMP:"+stamp,"DTSTART;VALUE=DATE:"+compact(start),"DTEND;VALUE=DATE:"+compact(start+1),"SUMMARY:Run your FBA inventory ledger audit","DESCRIPTION:Review new adjustments and check outstanding reimbursements.","URL:https://fba-ledger-audit.pages.dev/","END:VEVENT","END:VCALENDAR",""].join("\r\n");
+}
